@@ -6,23 +6,26 @@ import enemies
 import levels
 def appStarted(app): 
     app.enemyTanks = []
-    app.enemyBullets = []
-    app.playerBullets = []
+    app.bullets = []
     app.currentLayout = []
     app.levels = initLevels()
     app.currentLevel = 0
     app.missionLoading = False
     app.lives = 3
     app.wallSize = 50
-    app.background = app.loadImage('images\\background.png')
+    app.background = app.scaleImage(app.loadImage('images\\background.png'),1/2)
     app.time0 = time.time()
-def timerFired(app):
+    app.mode = 'home'
+    app.timerDelay = 10
+    app.timeConstant = app.timerDelay/1000
+def game_timerFired(app):
     if(app.currentLevel > 0 and not app.missionLoading):
-        doCollisions()
-        doMove()
+        doCollisions(app)
+        doMove(app)
         if(len(app.enemyTanks) == 0):
             completeLevel(app)
-    if(time.time() - app.time0 > 2 and app.missionLoading):
+def loading_timerFired(app):
+    if(time.time() - app.time0 > .5):
         startLevel(app)
 
 def keyPressed(app, event):
@@ -34,10 +37,17 @@ def keyReleased(app, event):
 def mousePressed(app, event):
     pass
 
-def mouseReleased(app, event):
-    if(app.currentLevel == 0 and event.x > 350 and event.x < 750
-     and event.y > 300 and event.y < 500):
+def home_mouseReleased(app, event):
+    if(app.currentLevel == 0 and event.x > 240 and event.x < 640
+     and event.y > 220 and event.y < 420):
         completeLevel(app)
+
+
+def game_mouseReleased(app, event):
+    temp = app.player.fire(event.x-app.player.x,event.y-app.player.y)
+    if(temp != None):
+        app.bullets.append(temp)
+    print(app.bullets)
 
 def mouseMoved(app, event):
     pass
@@ -45,24 +55,24 @@ def mouseMoved(app, event):
 def sizeChanged(app):
     app.setSize(880,640)
 
-def redrawAll(app, canvas):
-    if app.missionLoading:
-        drawMissionLoad(app,canvas)
-    elif app.currentLevel == 0:
-        drawHomeScreen(app,canvas)
-    else:
-        drawLevel(app,canvas)
-        drawObjects(app,canvas)
+def loading_redrawAll(app, canvas):
+    drawMissionLoad(app,canvas)
+def home_redrawAll(app, canvas):
+    drawHomeScreen(app,canvas)
+
+def game_redrawAll(app, canvas):
+    drawLevel(app,canvas)
+    drawObjects(app,canvas)
 
 def drawHomeScreen(app,canvas):
-    canvas.create_rectangle(350,300,750,500,fill = 'grey')
-    canvas.create_text(550,400,text = 'Start', font = 'Arial 40 bold')
+    canvas.create_rectangle(240,220,640,420,fill = 'grey')
+    canvas.create_text(440,320,text = 'Start', font = 'Arial 40 bold')
 
 def drawLevel(app,canvas):
     levelData = app.levels[app.currentLevel-1][2]
-    canvas.create_image(500,400,image = ImageTk.PhotoImage(app.background))
+    canvas.create_image(app.width/2,app.height/2,image = ImageTk.PhotoImage(app.background))
     for (row,col) in levelData:
-        drawWall(canvas,row-1,col-1)
+        drawWall(canvas,row+1,col+1)
     drawOutsideWalls(app,canvas)
 
 def drawOutsideWalls(app,canvas):
@@ -77,9 +87,19 @@ def drawWall(canvas,row,col):
     canvas.create_rectangle(cx-20,cy-20,cx+20,cy+20,fill = 'tan4')
 
 def drawObjects(app,canvas):
-    pass
+    for tank in app.enemyTanks:
+        tank.draw(canvas)
+    for bullet in app.bullets:
+        bullet.draw(canvas)
+    app.player.draw(canvas)
 def drawMissionLoad(app,canvas):
-    pass
+    canvas.create_text(app.width/2,app.height/3,text = f'Mission {app.currentLevel}', font = 'Arial 40 bold')
+    canvas.create_text(app.width/2,app.height/2,
+    text = f'Enemy Tanks: {len(app.levels[app.currentLevel-1][1])}', font = 'Arial 40 bold')
+    cx,cy = app.width*7/16,app.height*3/4
+    canvas.create_rectangle(cx-25,cy-25,cx+25,cy+25,fill = 'blue')
+    canvas.create_text(app.width/2,app.height*3/4,text = f'    X {app.lives}', font = 'Arial 40 bold',
+    fill = 'blue')
 
 #level format is list of tuple (Player,EnemyList,WallTupleList)
 def initLevels():
@@ -94,20 +114,21 @@ def initLevels():
 def startLevel(app):
     app.player = app.levels[app.currentLevel-1][0]
     app.enemyTanks = app.levels[app.currentLevel-1][1]
+    print(app.enemyTanks)
     app.currentLayout = app.levels[app.currentLevel-1][2]
-    app.missionLoading = False
+    app.mode = 'game'
 
-def doCollisions():
+def doCollisions(app):
     pass
-def doMove():
-    pass
+def doMove(app):
+    for bullet in app.bullets:
+        bullet.move(bullet.getSpeed()*app.timeConstant)
 def completeLevel(app):
     app.currentLevel += 1
     if(app.currentLevel > levels.totalLevels):
         winGame(app)
-    app.missionLoading = True
+    app.mode = 'loading'
     app.time0 = time.time()
-    print(app.time0)
 
 def winGame(app):
     pass
@@ -117,7 +138,7 @@ def toTupleList(level):
     for i in range(len(level)):
         for j in range(len(level[0])):
             if level[i][j] == 1:
-                tupleList.append((i,j))
+                tupleList.append((j,i))
     return tupleList
 
 def cellToLocation(cell):
