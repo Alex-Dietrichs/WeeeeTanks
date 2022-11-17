@@ -4,6 +4,7 @@ import objects
 import players
 import enemies
 import levels
+import math
 def appStarted(app): 
     app.enemyTanks = []
     app.bullets = []
@@ -18,27 +19,50 @@ def appStarted(app):
     app.mode = 'home'
     app.timerDelay = 10
     app.timeConstant = app.timerDelay/1000
+
 def game_timerFired(app):
-    if(app.currentLevel > 0 and not app.missionLoading):
-        doCollisions(app)
-        doMove(app)
-        if(len(app.enemyTanks) == 0):
-            completeLevel(app)
+    doCollisions(app)
+    doRicochet(app)
+    doMove(app)
+    if(len(app.enemyTanks) == 0):
+        completeLevel(app)
 def loading_timerFired(app):
-    if(time.time() - app.time0 > .5):
+    if(time.time() - app.time0 > 2):
         startLevel(app)
-
-def keyPressed(app, event):
-    pass
-
-def keyReleased(app, event):
-    pass
-
+def won_timerFired(app):
+    if(time.time() - app.time0 > 5):
+        app.mode = 'home'
+        appStarted(app)
+def game_keyPressed(app, event):
+    if(event.key == 'w'):
+        app.player.dy -= 1
+    if(event.key == 's'):
+        app.player.dy += 1
+    if(event.key == 'a'):
+        app.player.dx -=1
+    if(event.key == 'd'):
+        app.player.dx +=1
+    app.player.dy = limit(app.player.dy,-1,1)
+    app.player.dx = limit(app.player.dx,-1,1)
+    print(app.player.dx,app.player.dy)
+def game_keyReleased(app, event):
+    if(event.key == 'w'):
+        app.player.dy +=1
+    if(event.key == 's'):
+        app.player.dy -=1
+    if(event.key == 'a'):
+        app.player.dx +=1
+    if(event.key == 'd'):
+        app.player.dx -=1
+    app.player.dy = limit(app.player.dy,-1,1)
+    app.player.dx = limit(app.player.dx,-1,1)
+def limit(n, minn,maxn):
+    return min(max(n,minn),maxn)
 def mousePressed(app, event):
     pass
 
 def home_mouseReleased(app, event):
-    if(app.currentLevel == 0 and event.x > 240 and event.x < 640
+    if(event.x > 240 and event.x < 640
      and event.y > 220 and event.y < 420):
         completeLevel(app)
 
@@ -59,15 +83,16 @@ def loading_redrawAll(app, canvas):
     drawMissionLoad(app,canvas)
 def home_redrawAll(app, canvas):
     drawHomeScreen(app,canvas)
-
 def game_redrawAll(app, canvas):
     drawLevel(app,canvas)
     drawObjects(app,canvas)
-
+def won_redrawAll(app,canvas):
+    drawGameWon(app,canvas)
 def drawHomeScreen(app,canvas):
     canvas.create_rectangle(240,220,640,420,fill = 'grey')
     canvas.create_text(440,320,text = 'Start', font = 'Arial 40 bold')
-
+def drawGameWon(app,canvas):
+    canvas.create_text(440,320,text = 'You Beat the Game!', font = 'Arial 40 bold')
 def drawLevel(app,canvas):
     levelData = app.levels[app.currentLevel-1][2]
     canvas.create_image(app.width/2,app.height/2,image = ImageTk.PhotoImage(app.background))
@@ -92,6 +117,7 @@ def drawObjects(app,canvas):
     for bullet in app.bullets:
         bullet.draw(canvas)
     app.player.draw(canvas)
+
 def drawMissionLoad(app,canvas):
     canvas.create_text(app.width/2,app.height/3,text = f'Mission {app.currentLevel}', font = 'Arial 40 bold')
     canvas.create_text(app.width/2,app.height/2,
@@ -105,9 +131,9 @@ def drawMissionLoad(app,canvas):
 def initLevels():
     gameLevels = []
     for i in range(levels.totalLevels):
-        tempPlayer = levels.playerList[i]
-        tempEnemies = levels.enemyList[i] 
-        tempLayout = toTupleList(levels.layoutList[i])
+        tempPlayer = copy.copy(levels.playerList[i])
+        tempEnemies = copy.copy(levels.enemyList[i])
+        tempLayout = copy.copy(toTupleList(levels.layoutList[i]))
         gameLevels.append((tempPlayer,tempEnemies,tempLayout))
     return gameLevels
 
@@ -119,20 +145,44 @@ def startLevel(app):
     app.mode = 'game'
 
 def doCollisions(app):
-    pass
+    newBullets = copy.copy(app.bullets)
+    for i in range(len(app.bullets)):
+        for j in range(i+1,len(app.bullets)):
+            if (app.bullets[i].checkCollision(app.bullets[j])):
+                app.bullets[i].destroyBullet()
+                app.bullets[j].destroyBullet()
+                if(app.bullets[i] in newBullets):
+                    newBullets.remove(app.bullets[i])
+                if(app.bullets[j] in newBullets):
+                    newBullets.remove(app.bullets[j])
+        for tank in app.enemyTanks:
+            if (app.bullets[i].checkCollision(tank)):
+                app.bullets[i].destroyBullet()
+                if(app.bullets[i] in newBullets):
+                    newBullets.remove(app.bullets[i])
+                app.enemyTanks.remove(tank)
+    app.bullets = copy.copy(newBullets)
+def doRicochet(app):
+    for bullet in app.bullets:
+        x,y = bullet.getPos()
+        if x < 0 or x>app.width:
+            bullet.dx = -bullet.dx
+        if y < 0 or y > app.height:
+            bullet.dy = -bullet.dy
 def doMove(app):
     for bullet in app.bullets:
         bullet.move(bullet.getSpeed()*app.timeConstant)
+    app.player.move(app.player.getSpeed()*app.timeConstant)
 def completeLevel(app):
     app.currentLevel += 1
     if(app.currentLevel > levels.totalLevels):
-        winGame(app)
-    app.mode = 'loading'
-    app.time0 = time.time()
-
-def winGame(app):
-    pass
-
+        wonGame(app)
+    else:
+        app.mode = 'loading'
+    app.time0 = time.time()    
+def wonGame(app):
+    app.mode = 'won'
+    app.currentLevel = 0
 def toTupleList(level):
     tupleList = []
     for i in range(len(level)):
