@@ -162,13 +162,18 @@ def doCollisions(app):
                     newBullets.remove(app.bullets[i])
                 app.enemyTanks.remove(tank)
     app.bullets = copy.copy(newBullets)
+    
 def doRicochet(app):
     for bullet in app.bullets:
         x,y = bullet.getPos()
         if x < 0 or x>app.width:
             bullet.dx = -bullet.dx
+            if(bullet.ricochet()):
+                app.bullets.remove(bullet)
         if y < 0 or y > app.height:
             bullet.dy = -bullet.dy
+            if(bullet.ricochet()):
+                app.bullets.remove(bullet)
 def doMove(app):
     for bullet in app.bullets:
         bullet.move(bullet.getSpeed()*app.timeConstant)

@@ -65,8 +65,15 @@ class bullet(baseObject):
         magnitude = math.sqrt(dx**2+dy**2)
         self.dx,self.dy = dx/magnitude,dy/magnitude
         self.creator = creator
+        self.ricochetCount = 0
     def destroyBullet(self):
         self.creator.bulletDestroyed()
     def draw(self, canvas):
         canvas.create_rectangle(self.x-self.width/2,self.y-self.height/2,
         self.x+self.width/2,self.y+self.height/2, fill = 'black')
+    def ricochet(self):
+        self.ricochetCount += 1
+        if(self.ricochetCount > 1):
+            self.destroyBullet()
+            return True
+        return False
