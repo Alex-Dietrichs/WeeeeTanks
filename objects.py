@@ -17,6 +17,8 @@ class baseObject():
         self.x+self.width/2,self.y+self.height/2)
     def getSpeed(self):
         return self.speed
+    def getVelocity(self):
+        return (self.dx,self.dy)
     def move(self,relativeSpeed):
         #Causes issues with player movement
         #if(self.dx > 0 or self.dy > 0):
@@ -24,9 +26,9 @@ class baseObject():
           #  self.dx,self.dy = self.dx/magnitude,self.dy/magnitude
         self.x += self.dx * relativeSpeed
         self.y += self.dy * relativeSpeed
-    def checkCollision(self,baseObject):
-        x2,y2 = baseObject.getPos()
-        w2,h2 = baseObject.getSize()
+    def checkCollision(self,pos,size):
+        x2,y2 = pos
+        w2,h2 = size
         ul1x = self.x - self.width/2
         ul1y = self.y - self.height/2
         br1x = self.x + self.width/2
@@ -40,7 +42,6 @@ class baseObject():
 
         if br1y < ul2y or br2y < ul1y:
             return False
-        print(f"collision between {self} and {baseObject}")
         return True
 
 class tank(baseObject):
@@ -50,7 +51,10 @@ class tank(baseObject):
         self.currentBullets = 0
     def fire(self,dx,dy):
         if(self.currentBullets < self.maxBullets):
-            newBullet = bullet(self.x,self.y,dx,dy,self)
+            magnitude = math.sqrt(dx**2+dy**2)
+            dx/=magnitude
+            dy/=magnitude
+            newBullet = bullet(self.x+dx*40,self.y+dy*40,dx,dy,self)
             self.currentBullets += 1
             return newBullet
         return None
@@ -58,6 +62,12 @@ class tank(baseObject):
         self.currentBullets -= 1
     def layMine(self):
         pass
+    def move(self,relativeSpeed,layout):
+        if((self.x>65 or self.dx > 0) and (self.x<880-65 or self.dx < 0)):
+            self.x += self.dx * relativeSpeed
+        if((self.y>65 or self.dy > 0) and (self.y<640-65 or self.dy < 0)):
+            self.y += self.dy * relativeSpeed
+
 
 class bullet(baseObject):
     def __init__(self, x, y,dx,dy,creator) -> None:
