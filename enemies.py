@@ -15,7 +15,26 @@ class Enemy(objects.tank):
         self.timeSinceLastFire = 1
         self.fireDelay = 2
         self.aimDelay = 5
-    def findPath(self,app):
+    def locationToCell(self,location):
+        x,y = location
+        i = (x-20)//22
+        j = (y-20)//16
+        return (i-1,j-1)
+    def findPath(self,app, ):
+        startPos = self.locationToCell((self.x,self.y))
+        target = self.pickMoveTarget(app)
+        self.path = self.findPathHelper(app,startPos,target)
+    def findPathHelper(self,app,startPos,targetPos):
+        found = startPos
+        previous = dict()
+        return []
+    def buildPath(self,past,current):
+        path = [current]
+        while current in past:
+            current = past[current]
+            path.insert(0,current)
+        return path
+    def pickMoveTarget(self,app):
         pass
     def pickAimTarget(self, app):
         self.timeSinceLastAim += app.timeConstant
@@ -45,7 +64,8 @@ class Enemy(objects.tank):
         if(len(self.path) > 0):
             self.move(self.speed*app.timeConstant,layout)
         else:
-            self.findPath(app)
+            #self.findPath(app)
+            pass
 
 class brownEnemy(Enemy):
     def __init__(self, x, y) -> None:

@@ -63,10 +63,14 @@ class tank(baseObject):
     def layMine(self):
         pass
     def move(self,relativeSpeed,layout):
-        if((self.x>65 or self.dx > 0) and (self.x<880-65 or self.dx < 0)):
+        if((self.x>65 or self.dx > 0) and (self.x<880-65 or self.dx < 0) and self.layoutOkayX(self,relativeSpeed,layout)):
             self.x += self.dx * relativeSpeed
-        if((self.y>65 or self.dy > 0) and (self.y<640-65 or self.dy < 0)):
+        if((self.y>65 or self.dy > 0) and (self.y<640-65 or self.dy < 0) and self.layoutOkayY(self,relativeSpeed,layout)):
             self.y += self.dy * relativeSpeed
+    def layoutOkayX(self,relativeSpeed,layout):
+        return True
+    def layoutOkayY(self,relativeSpeed,layout):
+        return True
 
 
 class bullet(baseObject):
