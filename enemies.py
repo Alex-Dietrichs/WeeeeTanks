@@ -1,6 +1,5 @@
 import objects
 import random
-import time
 import math
 class Enemy(objects.tank):
     def __init__(self, x, y, speed) -> None:
@@ -10,7 +9,7 @@ class Enemy(objects.tank):
         self.starty = y
         self.targetAngle = 0
         self.currentAngle = 0
-        self.aimSpeed = 10
+        self.aimSpeed = math.pi/8
         self.timeSinceLastAim = 5
         self.path = []
         self.timeSinceLastFire = 1
@@ -18,10 +17,10 @@ class Enemy(objects.tank):
         self.aimDelay = 5
     def findPath(self,app):
         pass
-    def pickTarget(self, app):
+    def pickAimTarget(self, app):
         self.timeSinceLastAim += app.timeConstant
         if(self.timeSinceLastAim > self.aimDelay):
-            self.targetAngle = random.randint(0,359)
+            self.targetAngle = random.randint(0,359)*math.pi/180
             self.timeSinceLastAim = 0
     def moveAim(self,app):
         angleChange = self.aimSpeed*app.timeConstant
@@ -39,7 +38,7 @@ class Enemy(objects.tank):
             bullet = self.fire(dx,dy)
             self.timeSinceLastFire = 0
         self.timeSinceLastFire += app.timeConstant
-        self.pickTarget(app)
+        self.pickAimTarget(app)
         return bullet
 
     def followPath(self,app,layout):
@@ -51,10 +50,23 @@ class Enemy(objects.tank):
 class brownEnemy(Enemy):
     def __init__(self, x, y) -> None:
         super().__init__(x, y,0)
+    def draw(self,canvas):
+        canvas.create_rectangle(self.x-self.width/2,self.y-self.height/2,
+        self.x+self.width/2,self.y+self.height/2, fill = 'brown3', width = 0)
+
 
 class greyEnemy(Enemy):
     def __init__(self, x, y) -> None:
         super().__init__(x, y, 100)
-        self.aimSpeed = 5
+        self.aimSpeed = math.pi
         self.fireDelay = 2
         self.aimDelay = 3
+    def pickAimTarget(self, app):
+        self.timeSinceLastAim += app.timeConstant
+        if(self.timeSinceLastAim > self.aimDelay):
+            xp,yp = app.player.getPos()
+            hyp = ((self.x-xp)**2 + (self.y - yp)**2)**.5
+            xPart = (xp-self.x)/hyp
+            yPart = (yp-self.y)/hyp
+            self.targetAngle = math.atan(yPart/xPart)+math.pi
+            self.timeSinceLastAim = 0

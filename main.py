@@ -1,8 +1,5 @@
 from cmu_112_graphics import *
 import time
-import objects
-import players
-import enemies
 import levels
 import math
 
@@ -19,10 +16,12 @@ def appStarted(app):
     app.background = app.scaleImage(app.loadImage('images\\background.png'),1/2)
     app.time0 = time.time()
     app.mode = 'home'
-    app.timerDelay = 30
+    app.timerDelay = 25
     app.timeConstant = app.timerDelay/1000
     app.paused = False
     app.hitPause = False
+    app.time2 = 0
+    app.frames = 0
 
 def game_timerFired(app):
     if not app.paused:
@@ -77,9 +76,6 @@ def game_keyReleased(app, event):
 def limit(n, minn,maxn):
     return min(max(n,minn),maxn)
 
-def mousePressed(app, event):
-    pass
-
 def home_mouseReleased(app, event):
     if(event.x > 240 and event.x < 640
      and event.y > 220 and event.y < 420):
@@ -90,11 +86,6 @@ def game_mouseReleased(app, event):
     if(temp != None):
         app.bullets.append(temp)
 
-def mouseMoved(app, event):
-    pass
-
-def sizeChanged(app):
-    app.setSize(880,640)
 
 def loading_redrawAll(app, canvas):
     drawMissionLoad(app,canvas)
@@ -103,12 +94,20 @@ def home_redrawAll(app, canvas):
     drawHomeScreen(app,canvas)
 
 def game_redrawAll(app, canvas):
+    #countFrames(app)
     drawLevel(app,canvas)
     drawObjects(app,canvas)
     if(app.hitPause):
         drawMissionFailed(app,canvas)
     elif(app.paused):
         drawPauseScreen(app,canvas)
+
+def countFrames(app):
+    app.frames += 1
+    if(time.time() - app.time2 >= 1):
+        print(f'{app.frames} per second')
+        app.time2 = time.time()
+        app.frames = 0
 
 def won_redrawAll(app,canvas):
     drawGameWon(app,canvas)

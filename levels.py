@@ -43,5 +43,5 @@ playerList = [
     ]
 enemyList = [
     [enemies.brownEnemy(700,320)],
-    [enemies.brownEnemy(200,200),enemies.brownEnemy(300,300)]
+    [enemies.greyEnemy(700,220),enemies.greyEnemy(700,420)]
 ]
