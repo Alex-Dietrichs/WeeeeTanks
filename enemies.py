@@ -57,6 +57,7 @@ class Enemy(objects.tank):
             bullet = self.fire(dx,dy)
             self.timeSinceLastFire = 0
         self.timeSinceLastFire += app.timeConstant
+        print(self.timeSinceLastFire, self.targetAngle)
         self.pickAimTarget(app)
         return bullet
 
@@ -86,7 +87,9 @@ class greyEnemy(Enemy):
         if(self.timeSinceLastAim > self.aimDelay):
             xp,yp = app.player.getPos()
             hyp = ((self.x-xp)**2 + (self.y - yp)**2)**.5
-            xPart = (xp-self.x)/hyp
-            yPart = (yp-self.y)/hyp
+            xPart = xp-self.x
+            yPart = yp-self.y
             self.targetAngle = math.atan(yPart/xPart)+math.pi
+            if(xPart>0):
+                self.targetAngle-=math.pi
             self.timeSinceLastAim = 0
