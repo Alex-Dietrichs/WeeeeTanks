@@ -1,6 +1,7 @@
 import objects
 import random
 import math
+from helperFunc import *
 class Enemy(objects.tank):
     def __init__(self, x, y, speed) -> None:
         super().__init__(x, y, speed)
@@ -15,32 +16,74 @@ class Enemy(objects.tank):
         self.timeSinceLastFire = 1
         self.fireDelay = 2
         self.aimDelay = 5
-    def locationToCell(self,location):
-        x,y = location
-        i = (x-20)//22
-        j = (y-20)//16
-        return (i-1,j-1)
-    def findPath(self,app, ):
-        startPos = self.locationToCell((self.x,self.y))
-        target = self.pickMoveTarget(app)
-        self.path = self.findPathHelper(app,startPos,target)
-    def findPathHelper(self,app,startPos,targetPos):
-        found = startPos
+        self.findDelay = 10
+    #idea from https://en.wikipedia.org/wiki/A*_search_algorithm
+    def findPath(self,app):
+        startPos = locationToCell((self.x,self.y))
+        targetPos = self.pickMoveTarget(app)
+        found = {startPos}
         previous = dict()
-        return []
+        gScore = dict()
+        gScore[startPos] = 0
+        fScore = dict()
+        fScore[startPos] = self.heuristicAlgo(startPos,targetPos)
+
+        while len(found) != 0:
+            current = None
+            bestScore = 10000
+            for key in fScore:
+                curScore = fScore[key]
+                if key in found and curScore < bestScore:
+                    current = key
+                    bestScore = curScore
+            if current == targetPos:
+                return self.buildPath(previous,current)
+            found.remove(current)
+            i,j = current
+            next = [(i+1,j),(i-1,j),(i,j+1),(i,j-1)]
+            for nextPos in next:
+                (k,p) = nextPos
+                if(k>=0 and k< 20 and p>=0 and p < 14 and nextPos not in app.currentLayout):
+                    tempgScore = gScore[current] + 1
+                    if(tempgScore < gScore.get(nextPos,10000)):
+                        previous[nextPos] = current
+                        gScore[nextPos] = tempgScore
+                        fScore[nextPos] = tempgScore + self.heuristicAlgo(nextPos,targetPos)
+                        if nextPos not in found:
+                            found.add(nextPos)
+        return None
+    
     def buildPath(self,past,current):
         path = [current]
         while current in past:
             current = past[current]
             path.insert(0,current)
         return path
+
+    def heuristicAlgo(self,current,target):
+        i,j = current
+        l,m = target
+        cost = abs(i-l)+abs(j-m)
+        return cost
+
     def pickMoveTarget(self,app):
-        pass
+        iDif = random.randint(-2,2)
+        jDif = random.randint(-2,2)
+        i,j = locationToCell((self.x,self.y))
+        return (i+iDif,j+jDif)
+    
     def pickAimTarget(self, app):
         self.timeSinceLastAim += app.timeConstant
         if(self.timeSinceLastAim > self.aimDelay):
-            self.targetAngle = random.randint(0,359)*math.pi/180
+            xp,yp = app.player.getPos()
+            hyp = ((self.x-xp)**2 + (self.y - yp)**2)**.5
+            xPart = xp-self.x
+            yPart = yp-self.y
+            self.targetAngle = math.atan(yPart/xPart)+math.pi
+            if(xPart>0):
+                self.targetAngle-=math.pi
             self.timeSinceLastAim = 0
+
     def moveAim(self,app):
         angleChange = self.aimSpeed*app.timeConstant
         bullet = None
@@ -57,16 +100,32 @@ class Enemy(objects.tank):
             bullet = self.fire(dx,dy)
             self.timeSinceLastFire = 0
         self.timeSinceLastFire += app.timeConstant
-        print(self.timeSinceLastFire, self.targetAngle)
         self.pickAimTarget(app)
         return bullet
 
     def followPath(self,app,layout):
-        if(len(self.path) > 0):
+        if(self.path != None and len(self.path) > 0):
+            self.getMovementDir()
             self.move(self.speed*app.timeConstant,layout)
+        elif self.findDelay < 5:
+            self.findDelay += app.timeConstant
+        else: 
+            self.path = self.findPath(app)
+            print(self.path)
+            self.findDelay = 0
+    def getMovementDir(self):
+        if(locationToCell((self.x,self.y)) == self.path[0]):
+            self.path.pop(0)
+        if(len(self.path)>0):
+            targetX,targetY = cellToLocation(self.path[0])
+            xVec = targetX - self.x
+            yVec = targetY-self.y
+            magnitude = math.sqrt(xVec**2 + yVec**2)
+            self.dx = xVec/magnitude
+            self.dy = yVec/magnitude
         else:
-            #self.findPath(app)
-            pass
+            self.dx = 0
+            self.dy = 0
 
 class brownEnemy(Enemy):
     def __init__(self, x, y) -> None:
@@ -74,6 +133,13 @@ class brownEnemy(Enemy):
     def draw(self,canvas):
         canvas.create_rectangle(self.x-self.width/2,self.y-self.height/2,
         self.x+self.width/2,self.y+self.height/2, fill = 'brown3', width = 0)
+    def pickAimTarget(self, app):
+        self.timeSinceLastAim += app.timeConstant
+        if(self.timeSinceLastAim > self.aimDelay):
+            self.targetAngle = random.randint(0,359)*math.pi/180
+            self.timeSinceLastAim = 0
+    def followPath(self,app,layout):
+        pass
 
 
 class greyEnemy(Enemy):

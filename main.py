@@ -2,7 +2,8 @@ from cmu_112_graphics import *
 import time
 import levels
 import math
-
+from helperFunc import *
+import controls
 def appStarted(app): 
     app.enemyTanks = []
     app.bullets = []
@@ -22,6 +23,8 @@ def appStarted(app):
     app.hitPause = False
     app.time2 = 0
     app.frames = 0
+    app.dir = controls.controller()
+
 
 def game_timerFired(app):
     if not app.paused:
@@ -34,7 +37,7 @@ def game_timerFired(app):
         resetLevel(app)
 
 def loading_timerFired(app):
-    if(time.time() - app.time0 > 2):
+    if(time.time() - app.time0 > 1):
         startLevel(app)
 
 def won_timerFired(app):
@@ -48,29 +51,25 @@ def lost_timerFired(app):
         appStarted(app)
 
 def game_keyPressed(app, event):
-    if(event.key == 'w'):
-        app.player.dy -= 1
-    if(event.key == 's'):
-        app.player.dy += 1
-    if(event.key == 'a'):
-        app.player.dx -=1
-    if(event.key == 'd'):
-        app.player.dx +=1
-    app.player.dy = limit(app.player.dy,-1,1)
-    app.player.dx = limit(app.player.dx,-1,1)
+    if(not app.dir.up and event.key == 'w'):
+        app.dir.up = True
+    elif(not app.dir.down and event.key == 's'):
+        app.dir.down = True
+    elif(not app.dir.left and event.key == 'a'):
+        app.dir.left = True
+    elif(not app.dir.right and event.key == 'd'):
+        app.dir.right = True
 
 def game_keyReleased(app, event):
-    if(event.key.lower() == 'w'):
-        app.player.dy +=1
-    if(event.key.lower() == 's'):
-        app.player.dy -=1
-    if(event.key.lower() == 'a'):
-        app.player.dx +=1
-    if(event.key.lower() == 'd'):
-        app.player.dx -=1
-    app.player.dy = limit(app.player.dy,-1,1)
-    app.player.dx = limit(app.player.dx,-1,1)
-    if(event.key.lower() == 'p' and not app.hitPause):
+    if(app.dir.up and event.key == 'w'):
+        app.dir.up = False
+    elif(app.dir.down and event.key == 's'):
+        app.dir.down = False
+    elif(app.dir.left and event.key == 'a'):
+        app.dir.left = False
+    elif(app.dir.right and event.key == 'd'):
+        app.dir.right = False
+    elif(event.key.lower() == 'p' and not app.hitPause):
         app.paused = not app.paused
 
 def limit(n, minn,maxn):
@@ -187,6 +186,7 @@ def startLevel(app):
     app.currentLayout = app.levels[app.currentLevel-1][2]
     app.bullets = []
     app.mode = 'game'
+    app.dir = controls.controller()
 
 def doCollisions(app):
     newBullets = copy.copy(app.bullets)
@@ -267,12 +267,37 @@ def doRicochet(app):
 def doMove(app):
     for bullet in app.bullets:
         bullet.move(bullet.getSpeed()*app.timeConstant)
+    calcPlayerMove(app)
     app.player.move(app.player.getSpeed()*app.timeConstant, app.currentLayout)
     for enemy in app.enemyTanks:
         enemy.followPath(app,app.currentLayout)
         temp = enemy.moveAim(app)
         if(temp != None):
             app.bullets.append(temp)
+
+def calcPlayerMove(app):
+    dx,dy = 0,0
+    if app.dir.up and not app.dir.down:
+        dy = -1
+    elif app.dir.down and not app.dir.up:
+        dy = 1
+    else:
+        dy = 0
+
+    if app.dir.left and not app.dir.right:
+        dx = -1
+    elif app.dir.right and not app.dir.left:
+        dx = 1
+    else:
+        dx = 0
+    if dx != 0 and dy != 0:
+        mag = math.sqrt(dx**2 + dy**2)
+        app.player.dx = dx/mag
+        app.player.dy = dy/mag
+    else:
+        app.player.dx = dx
+        app.player.dy = dy
+
 
 def completeLevel(app):
     app.currentLevel += 1
@@ -294,16 +319,6 @@ def toTupleList(level):
                 tupleList.append((j,i))
     return tupleList
 
-def cellToLocation(cell):
-    i,j = cell
-    x = 20+40*(i+1)
-    y = 20+40*(j+1)
-    return (x,y)
 
-def locationToCell(location):
-    x,y = location
-    i = (x-20)//22
-    j = (y-20)//16
-    return (i-1,j-1)
 
 runApp(width=880, height=640)
