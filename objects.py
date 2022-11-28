@@ -46,7 +46,7 @@ class baseObject():
 
 class tank(baseObject):
     def __init__(self, x, y, speed) -> None:
-        super().__init__(x,y,50, 50, speed)
+        super().__init__(x,y,40, 40, speed)
         self.maxBullets = 2
         self.currentBullets = 0
     def fire(self,dx,dy):
@@ -63,9 +63,9 @@ class tank(baseObject):
     def layMine(self):
         pass
     def move(self,relativeSpeed,layout):
-        if((self.x>65 or self.dx > 0) and (self.x<880-65 or self.dx < 0) and self.layoutOkayX(relativeSpeed,layout)):
+        if((self.x>60 or self.dx > 0) and (self.x<1040-60 or self.dx < 0) and self.layoutOkayX(relativeSpeed,layout)):
             self.x += self.dx * relativeSpeed
-        if((self.y>65 or self.dy > 0) and (self.y<640-65 or self.dy < 0) and self.layoutOkayY(relativeSpeed,layout)):
+        if((self.y>60 or self.dy > 0) and (self.y<640-60 or self.dy < 0) and self.layoutOkayY(relativeSpeed,layout)):
             self.y += self.dy * relativeSpeed
     def layoutOkayX(self,relativeSpeed,layout):
         return True

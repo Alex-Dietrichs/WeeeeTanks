@@ -43,7 +43,7 @@ class Enemy(objects.tank):
             next = [(i+1,j),(i-1,j),(i,j+1),(i,j-1)]
             for nextPos in next:
                 (k,p) = nextPos
-                if(k>=0 and k< 20 and p>=0 and p < 14 and nextPos not in app.currentLayout):
+                if(k>=0 and k< 24 and p>=0 and p < 14 and nextPos not in app.currentLayout):
                     tempgScore = gScore[current] + 1
                     if(tempgScore < gScore.get(nextPos,10000)):
                         previous[nextPos] = current
@@ -67,10 +67,14 @@ class Enemy(objects.tank):
         return cost
 
     def pickMoveTarget(self,app):
-        iDif = random.randint(-2,2)
-        jDif = random.randint(-2,2)
-        i,j = locationToCell((self.x,self.y))
-        return (i+iDif,j+jDif)
+        while True:
+            iDif = random.randint(-5,5)
+            jDif = random.randint(-5,5)
+            i,j = locationToCell((self.x,self.y))
+            tI,tJ = i+iDif,j+jDif
+            if(tI,tJ) not in app.currentLayout and tI>=0 and tI <=24 and tJ >= 0 and tJ <=14: 
+                break
+        return (tI,tJ)
     
     def pickAimTarget(self, app):
         self.timeSinceLastAim += app.timeConstant
@@ -107,25 +111,28 @@ class Enemy(objects.tank):
         if(self.path != None and len(self.path) > 0):
             self.getMovementDir()
             self.move(self.speed*app.timeConstant,layout)
-        elif self.findDelay < 5:
+            if(locationToCell((self.x,self.y)) == self.path[0]):
+                self.path.pop(0)
+        elif self.findDelay < 3:
             self.findDelay += app.timeConstant
         else: 
             self.path = self.findPath(app)
             print(self.path)
             self.findDelay = 0
     def getMovementDir(self):
-        if(locationToCell((self.x,self.y)) == self.path[0]):
-            self.path.pop(0)
         if(len(self.path)>0):
             targetX,targetY = cellToLocation(self.path[0])
             xVec = targetX - self.x
-            yVec = targetY-self.y
-            magnitude = math.sqrt(xVec**2 + yVec**2)
-            self.dx = xVec/magnitude
-            self.dy = yVec/magnitude
+            yVec = targetY - self.y
+            if(xVec == 0 and yVec == 0):
+                self.dx,self.dy = 0,0
+            else:
+                magnitude = math.sqrt(xVec**2 + yVec**2)
+                self.dx = xVec/magnitude
+                self.dy = yVec/magnitude
         else:
-            self.dx = 0
-            self.dy = 0
+            self.dx,self.dy = 0,0
+            self.findDelay += 3
 
 class brownEnemy(Enemy):
     def __init__(self, x, y) -> None:

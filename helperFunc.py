@@ -1,3 +1,5 @@
+import math
+
 def cellToLocation(cell):
     i,j = cell
     x = 20+40*(i+1)
@@ -6,6 +8,6 @@ def cellToLocation(cell):
 
 def locationToCell(location):
     x,y = location
-    i = (x-20)//40
-    j = (y-20)//40
+    i = round((x-20)/40)
+    j = round((y-20)/40)
     return (i-1,j-1)

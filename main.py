@@ -9,7 +9,7 @@ def appStarted(app):
     app.bullets = []
     app.currentLayout = []
     app.levels = initLevels()
-    app.currentLevel = 0
+    app.currentLevel = 1
     app.missionLoading = False
     app.lives = 3
     app.wallSize = 50
@@ -51,32 +51,34 @@ def lost_timerFired(app):
         appStarted(app)
 
 def game_keyPressed(app, event):
-    if(not app.dir.up and event.key == 'w'):
+    key = event.key
+    if(not app.dir.up and key == 'w'):
         app.dir.up = True
-    elif(not app.dir.down and event.key == 's'):
+    elif(not app.dir.down and key == 's'):
         app.dir.down = True
-    elif(not app.dir.left and event.key == 'a'):
+    elif(not app.dir.left and key == 'a'):
         app.dir.left = True
-    elif(not app.dir.right and event.key == 'd'):
+    elif(not app.dir.right and key == 'd'):
         app.dir.right = True
 
 def game_keyReleased(app, event):
-    if(app.dir.up and event.key == 'w'):
+    key = event.key
+    if(app.dir.up and key == 'w'):
         app.dir.up = False
-    elif(app.dir.down and event.key == 's'):
+    elif(app.dir.down and key == 's'):
         app.dir.down = False
-    elif(app.dir.left and event.key == 'a'):
+    elif(app.dir.left and key == 'a'):
         app.dir.left = False
-    elif(app.dir.right and event.key == 'd'):
+    elif(app.dir.right and key == 'd'):
         app.dir.right = False
-    elif(event.key.lower() == 'p' and not app.hitPause):
+    elif(key.lower() == 'p' and not app.hitPause):
         app.paused = not app.paused
 
 def limit(n, minn,maxn):
     return min(max(n,minn),maxn)
 
 def home_mouseReleased(app, event):
-    if(event.x > 240 and event.x < 640
+    if(event.x > 320 and event.x < 720
      and event.y > 220 and event.y < 420):
         completeLevel(app)
 
@@ -115,11 +117,11 @@ def lost_redrawAll(app,canvas):
     drawGameLost(app,canvas)
 
 def drawHomeScreen(app,canvas):
-    canvas.create_rectangle(240,220,640,420,fill = 'grey')
-    canvas.create_text(440,320,text = 'Start', font = 'Arial 40 bold')
+    canvas.create_rectangle(320,220,720,420,fill = 'grey')
+    canvas.create_text(app.width/2,app.height/2,text = 'Start', font = 'Arial 40 bold')
 
 def drawGameWon(app,canvas):
-    canvas.create_text(440,320,text = 'You Beat the Game!', font = 'Arial 40 bold')
+    canvas.create_text(app.width/2,app.height/2,text = 'You Beat the Game!', font = 'Arial 40 bold')
 
 def drawGameLost(app,canvas):
     canvas.create_text(440,320,text = 'You Lost!', font = 'Arial 40 bold')
@@ -131,12 +133,12 @@ def drawLevel(app,canvas):
     drawOutsideWalls(app,canvas)
 
 def drawOutsideWalls(app,canvas):
-    for i in range(22):
+    for i in range(26):
         drawWall(canvas,i-1,0-1)
         drawWall(canvas,i-1,15-1)
     for j in range(16):
         drawWall(canvas,0-1,j-1)
-        drawWall(canvas,21-1,j-1)
+        drawWall(canvas,25-1,j-1)
 
 def drawWall(canvas,row,col):
     cx,cy = cellToLocation((row,col))
@@ -160,11 +162,11 @@ def drawMissionLoad(app,canvas):
     fill = 'blue')
 
 def drawMissionFailed(app,canvas):
-    canvas.create_rectangle(0,app.height*5/8,880,app.height*3/8,fill = 'white')
+    canvas.create_rectangle(0,app.height*5/8,1040,app.height*3/8,fill = 'white')
     canvas.create_text(app.width/2,app.height/2,text = 'Mission Failed', font = 'Arial 40 bold')
 
 def drawPauseScreen(app,canvas):
-    canvas.create_rectangle(0,app.height*5/8,880,app.height*3/8,fill = 'white')
+    canvas.create_rectangle(0,app.height*5/8,1040,app.height*3/8,fill = 'white')
     canvas.create_text(app.width/2,app.height/2,text = 'Paused, press p to start', font = 'Arial 40 bold')
 
 #level format is list of tuple (Player,EnemyList,WallTupleList)
@@ -290,6 +292,7 @@ def calcPlayerMove(app):
         dx = 1
     else:
         dx = 0
+
     if dx != 0 and dy != 0:
         mag = math.sqrt(dx**2 + dy**2)
         app.player.dx = dx/mag
@@ -321,4 +324,4 @@ def toTupleList(level):
 
 
 
-runApp(width=880, height=640)
+runApp(width=1040, height=640)
