@@ -3,8 +3,8 @@ import random
 import math
 from helperFunc import *
 class Enemy(objects.tank):
-    def __init__(self, x, y, speed) -> None:
-        super().__init__(x, y, speed)
+    def __init__(self, x, y, speed, imagePath, turretImagePath) -> None:
+        super().__init__(x, y, speed, imagePath,turretImagePath)
         self.target = (x,y)
         self.startx = x
         self.starty = y
@@ -83,9 +83,7 @@ class Enemy(objects.tank):
             hyp = ((self.x-xp)**2 + (self.y - yp)**2)**.5
             xPart = xp-self.x
             yPart = yp-self.y
-            self.targetAngle = math.atan(yPart/xPart)+math.pi
-            if(xPart>0):
-                self.targetAngle-=math.pi
+            self.targetAngle = math.atan2(yPart,xPart)
             self.timeSinceLastAim = 0
 
     def moveAim(self,app):
@@ -96,6 +94,7 @@ class Enemy(objects.tank):
         else:
             dir = (self.targetAngle-self.currentAngle)/abs((self.targetAngle-self.currentAngle))
             self.currentAngle += angleChange*dir
+        self.rotateTurretImage(-self.currentAngle-math.pi/2)
         if((self.timeSinceLastFire >= self.fireDelay and 
                 self.currentAngle == self.targetAngle) or 
                 self.timeSinceLastFire >= 1.5*self.fireDelay):
@@ -136,10 +135,7 @@ class Enemy(objects.tank):
 
 class brownEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y,0)
-    def draw(self,canvas):
-        canvas.create_rectangle(self.x-self.width/2,self.y-self.height/2,
-        self.x+self.width/2,self.y+self.height/2, fill = 'brown3', width = 0)
+        super().__init__(x, y,0,'images\\playerTank.png','images\\playerTurret.png')
     def pickAimTarget(self, app):
         self.timeSinceLastAim += app.timeConstant
         if(self.timeSinceLastAim > self.aimDelay):
@@ -151,18 +147,7 @@ class brownEnemy(Enemy):
 
 class greyEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y, 100)
-        self.aimSpeed = math.pi
+        super().__init__(x, y, 100,'images\\playerTank.png','images\\playerTurret.png')
+        self.aimSpeed = math.pi/8
         self.fireDelay = 2
-        self.aimDelay = 3
-    def pickAimTarget(self, app):
-        self.timeSinceLastAim += app.timeConstant
-        if(self.timeSinceLastAim > self.aimDelay):
-            xp,yp = app.player.getPos()
-            hyp = ((self.x-xp)**2 + (self.y - yp)**2)**.5
-            xPart = xp-self.x
-            yPart = yp-self.y
-            self.targetAngle = math.atan(yPart/xPart)+math.pi
-            if(xPart>0):
-                self.targetAngle-=math.pi
-            self.timeSinceLastAim = 0
+        self.aimDelay = .5
