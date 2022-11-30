@@ -25,6 +25,8 @@ class Enemy(objects.tank):
         self.time0 = time.time()
         startPos = locationToCell((self.x,self.y))
         targetPos = self.pickMoveTarget(app)
+        if(targetPos == None):
+            return None
         found = {startPos}
         previous = dict()
         gScore = dict()
@@ -91,7 +93,7 @@ class Enemy(objects.tank):
             i,j = locationToCell((self.x,self.y))
             tI,tJ = i+iDif,j+jDif
             if((tI,tJ) not in app.currentLayout and tI>=0 and tI <=22 and tJ >= 0 and tJ <=16): 
-                canSee = self.canSeePlayer(app,cellToLocation(i,j))
+                canSee = self.canSeePlayer(app,cellToLocation((i,j)))
                 if self.fireDelay > self.timeSinceLastFire and not canSee:
                     break
                 elif self.fireDelay < self.timeSinceLastFire and canSee:
@@ -99,7 +101,7 @@ class Enemy(objects.tank):
             n+=1
         return (tI,tJ)
     def pickMoveTargetNone(self,app):
-        pass
+        return None
     
     
     
@@ -117,6 +119,7 @@ class Enemy(objects.tank):
         angleChange = self.aimSpeed*app.timeConstant
         bullet = None
         if(self.currentAngle < 0): self.currentAngle += 2*math.pi
+        if(self.targetAngle < 0): self.targetAngle += 2*math.pi
         self.currentAngle = self.currentAngle % (math.pi*2)
         mag = abs((self.targetAngle-self.currentAngle))
         if(mag < abs(angleChange)):
@@ -240,7 +243,7 @@ class tealEnemy(Enemy):
             return newBullet
         return None
     def pickMoveTarget(self, app):
-        return self.pickMoveTargetDefensive
+        return self.pickMoveTargetDefensive(app)
 class yellowEnemy(Enemy):
     def __init__(self, x, y) -> None:
         super().__init__(x, y, 100,1,'images\\yellowTank.png','images\\yellowTurret.png')

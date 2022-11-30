@@ -17,7 +17,7 @@ def appStarted(app):
     app.currentHoles = []
     app.currentTotalSet = set()
     app.levels = initLevels()
-    app.currentLevel = 6
+    app.currentLevel = 5
     app.missionLoading = False
     app.lives = 3
     app.wallSize = 50
