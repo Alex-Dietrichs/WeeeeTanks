@@ -15,7 +15,7 @@ class Enemy(objects.tank):
         self.path = []
         self.timeSinceLastFire = 1.5
         #Changeable
-        self.aimSpeed = math.pi/4
+        self.aimSpeed = math.pi/2
         self.fireDelay = 1
         self.aimDelay = .5
         self.findDelay = 5
@@ -72,14 +72,36 @@ class Enemy(objects.tank):
         return cost
 
     def pickMoveTarget(self,app):
-        while True:
+        n=0
+        while n<10:
             iDif = random.randint(-5,5)
             jDif = random.randint(-5,5)
             i,j = locationToCell((self.x,self.y))
             tI,tJ = i+iDif,j+jDif
             if(tI,tJ) not in app.currentLayout and tI>=0 and tI <=22 and tJ >= 0 and tJ <=16: 
                 break
+            n+=1
         return (tI,tJ)
+    
+    def pickMoveTargetDefensive(self,app):
+        n=0
+        while n<10:
+            iDif = random.randint(-5,5)
+            jDif = random.randint(-5,5)
+            i,j = locationToCell((self.x,self.y))
+            tI,tJ = i+iDif,j+jDif
+            if((tI,tJ) not in app.currentLayout and tI>=0 and tI <=22 and tJ >= 0 and tJ <=16): 
+                canSee = self.canSeePlayer(app,cellToLocation(i,j))
+                if self.fireDelay > self.timeSinceLastFire and not canSee:
+                    break
+                elif self.fireDelay < self.timeSinceLastFire and canSee:
+                    break
+            n+=1
+        return (tI,tJ)
+    def pickMoveTargetNone(self,app):
+        pass
+    
+    
     
     def pickAimTarget(self, app):
         self.timeSinceLastAim += app.timeConstant
@@ -94,23 +116,25 @@ class Enemy(objects.tank):
     def moveAim(self,app):
         angleChange = self.aimSpeed*app.timeConstant
         bullet = None
-        self.currentAngle %= math.pi*2
-        if(abs(self.currentAngle - self.targetAngle) < abs(angleChange)):
+        if(self.currentAngle < 0): self.currentAngle += 2*math.pi
+        self.currentAngle = self.currentAngle % (math.pi*2)
+        mag = abs((self.targetAngle-self.currentAngle))
+        if(mag < abs(angleChange)):
             self.currentAngle = self.targetAngle
         else:
-            mag = abs((self.targetAngle-self.currentAngle))
             dir = (self.targetAngle-self.currentAngle)/mag
+            if mag>math.pi: dir=-dir
             self.currentAngle += angleChange*dir
         self.rotateTurretImage(-self.currentAngle-math.pi/2)
 
         #fire
         if((self.timeSinceLastFire >= self.fireDelay and 
-                self.currentAngle == self.targetAngle) or 
-                self.timeSinceLastFire >= 3*self.fireDelay):
-            dx = math.cos(self.currentAngle)
-            dy = math.sin(self.currentAngle)
-            bullet = self.fire(dx,dy)
-            self.timeSinceLastFire = 0
+                self.currentAngle == self.targetAngle)):
+            if(self.canSeePlayer(app,self.getPos())):
+                dx = math.cos(self.currentAngle)
+                dy = math.sin(self.currentAngle)
+                bullet = self.fire(dx,dy)
+                self.timeSinceLastFire = 0
         
         self.timeSinceLastFire += app.timeConstant
         self.pickAimTarget(app)
@@ -144,11 +168,37 @@ class Enemy(objects.tank):
             self.dx,self.dy = 0,0
             self.timeSinceLastFind += 5
 
+    def canSeePlayer(self,app,pos):
+        pX,pY = app.player.getPos()
+        x,y = pos
+        iCheck,jCheck = locationToCell((x,y))
+        iFinal,jFinal = locationToCell((pX,pY))
+        dx = (iFinal-iCheck)
+        dy = (jFinal-jCheck)
+        if(dx!=dy):
+            if(abs(dx)>abs(dy)):
+                dy /= abs(dx)
+                dx /= abs(dx)
+                while(iCheck != iFinal):
+                    iCheck+=dx
+                    jCheck += dy
+                    if((int(iCheck),round(jCheck)) in app.currentLayoutSet):
+                        return False
+            else:
+                dx /= abs(dy)
+                dy /= abs(dy)
+                while(jCheck != jFinal):
+                    iCheck+=dx
+                    jCheck+=dy
+                    if((int(round(iCheck)),int(jCheck)) in app.currentLayoutSet):
+                        return False
+        return True
+
 class brownEnemy(Enemy):
     def __init__(self, x, y) -> None:
         super().__init__(x, y,0,1,'images\\brownTank.png','images\\brownTurret.png')
         self.aimDelay = 5
-        self.aimSpeed = math.pi/8
+        self.aimSpeed = math.pi/4
     def pickAimTarget(self, app):
         self.timeSinceLastAim += app.timeConstant
         picker = random.randint(0,2)
@@ -164,10 +214,15 @@ class brownEnemy(Enemy):
             self.timeSinceLastAim = 0
     def followPath(self,app):
         pass
+    def pickMoveTarget(self, app):
+        return self.pickMoveTargetNone(self,app)
+
 
 class greyEnemy(Enemy):
     def __init__(self, x, y) -> None:
         super().__init__(x, y, 100,1,'images\\greyTank.png','images\\greyTurret.png')
+    def pickMoveTarget(self, app): #Defensive
+       return self.pickMoveTargetDefensive(app)
 
 class tealEnemy(Enemy):
     def __init__(self, x, y) -> None:
@@ -184,6 +239,8 @@ class tealEnemy(Enemy):
             self.currentBullets += 1
             return newBullet
         return None
+    def pickMoveTarget(self, app):
+        return self.pickMoveTargetDefensive
 class yellowEnemy(Enemy):
     def __init__(self, x, y) -> None:
         super().__init__(x, y, 100,1,'images\\yellowTank.png','images\\yellowTurret.png')
@@ -204,6 +261,8 @@ class greenEnemy(Enemy):
         self.aimDelay = .5
     def followPath(self,app):
         pass
+    def pickMoveTarget(self, app):
+        return self.pickMoveTargetNone(self,app)
     def fire(self,dx,dy):
         if(self.currentBullets < self.maxBullets):
             magnitude = math.sqrt(dx**2+dy**2)
