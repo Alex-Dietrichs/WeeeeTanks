@@ -23,6 +23,7 @@ class baseObject():
         canvas.create_image(self.x,self.y,image = ImageTk.PhotoImage(self.image))
     def initImage(self,app):
         self.loadedImage = app.scaleImage(app.loadImage(self.imagePath),1/4)
+        self.image = self.loadedImage
     def rotateImage(self):
         theta = self.toDegrees(math.atan2(self.dx,self.dy) + math.pi)
         self.image = self.loadedImage.rotate(angle=theta, resample = Image.Resampling.BILINEAR)
@@ -56,9 +57,9 @@ class baseObject():
         return angle*180/math.pi
 
 class tank(baseObject):
-    def __init__(self, x, y, speed, imagePath,turretImagePath = 'images\\playerTurret.png' ) -> None:
+    def __init__(self, x, y, speed, maxBullets, imagePath,turretImagePath = 'images\\playerTurret.png' ) -> None:
         super().__init__(x,y,40, 40, speed, imagePath)
-        self.maxBullets = 1
+        self.maxBullets = maxBullets
         self.currentBullets = 0
         self.turretImage = None
         self.turretLoadedImage = None
@@ -80,8 +81,8 @@ class tank(baseObject):
         self.currentBullets -= 1
     def layMine(self):
         pass
-    def move(self,relativeSpeed,layout):
-        self.layoutOkay(relativeSpeed,layout)
+    def move(self,relativeSpeed,layout,holeLayout):
+        self.layoutOkay(relativeSpeed,layout,holeLayout)
         if((self.x>60 or self.dx > 0) and (self.x<960-60 or self.dx < 0) and self.xOkay):
             self.x += self.dx * relativeSpeed
             self.efdx = self.dx
@@ -92,9 +93,10 @@ class tank(baseObject):
             self.efdy = self.dy
         else:
             self.efdy = 0
-    def layoutOkay(self,relativeSpeed,layout):
+    def layoutOkay(self,relativeSpeed,layout,holeLayout):
         self.xOkay,self.yOkay = True,True
-        for wallCell in layout:
+        tempLayout = layout + holeLayout
+        for wallCell in tempLayout:
             wx,wy = cellToLocation(wallCell)
             if((self.y<wy+35 and self.y > wy-35) and abs(self.x-wx) < 40):#Within Y bounds
                 if (self.x>wx and self.dx < 0) or (self.x<wx and self.dx > 0):
@@ -124,7 +126,7 @@ class tank(baseObject):
 
 class bullet(baseObject):
     def __init__(self, x, y,dx,dy,creator) -> None:
-        super().__init__(x,y,5,5,speed=500,imagePath='images\\bullet.png')
+        super().__init__(x,y,7.5,7.5,speed=400,imagePath='images\\bullet.png')
         self.hyp = math.sqrt(dx**2+dy**2)
         self.dx,self.dy = dx/self.hyp,dy/self.hyp
         self.creator = creator
@@ -141,11 +143,13 @@ class bullet(baseObject):
         self.rotateImage()
         return False
     def initImage(self,app):
-        self.loadedImage = app.scaleImage(app.loadImage(self.imagePath),1/4)
+        self.loadedImage = app.scaleImage(app.loadImage(self.imagePath),1/3)
         self.image = self.loadedImage
         self.rotateImage()
 
 class fastBullet(bullet):
     def __init__(self, x, y, dx, dy, creator) -> None:
         super().__init__(x, y, dx, dy, creator)
+        self.imagePath = 'images\\fastBullet.png'
         self.speed = 800
+        self.ricochetCount = 1

@@ -3,23 +3,26 @@ import random
 import math
 from helperFunc import *
 class Enemy(objects.tank):
-    def __init__(self, x, y, speed, imagePath, turretImagePath) -> None:
-        super().__init__(x, y, speed, imagePath,turretImagePath)
+    def __init__(self, x, y, speed, maxBullets, imagePath, turretImagePath) -> None:
+        super().__init__(x, y, speed,maxBullets, imagePath,turretImagePath)
         self.target = (x,y)
         self.startx = x
         self.starty = y
         self.targetAngle = 0
         self.currentAngle = math.pi/2
         self.timeSinceLastAim = 5
+        self.timeSinceLastFind = 5
         self.path = []
-        self.timeSinceLastFire = .5
+        self.timeSinceLastFire = 1.5
         #Changeable
         self.aimSpeed = math.pi/4
         self.fireDelay = 1.5
         self.aimDelay = .5
         self.findDelay = 5
+        self.time0 = 0
     #idea from https://en.wikipedia.org/wiki/A*_search_algorithm
     def findPath(self,app):
+        self.time0 = time.time()
         startPos = locationToCell((self.x,self.y))
         targetPos = self.pickMoveTarget(app)
         found = {startPos}
@@ -41,7 +44,7 @@ class Enemy(objects.tank):
                 return self.buildPath(previous,current)
             found.remove(current)
             i,j = current
-            next = [(i+1,j),(i-1,j),(i,j+1),(i,j-1)]
+            next = [(i+1,j),(i-1,j),(i,j+1),(i,j-1),(i+1,j+1),(i+1,j-1),(i-1,j-1),(i-1,j+1)]
             for nextPos in next:
                 (k,p) = nextPos
                 if(k>=0 and k< 22 and p>=0 and p < 16 and nextPos not in app.currentLayout):
@@ -59,12 +62,13 @@ class Enemy(objects.tank):
         while current in past:
             current = past[current]
             path.insert(0,current)
+        print(f'Path finding time: {time.time()-self.time0}')
         return path
 
     def heuristicAlgo(self,current,target):
         i,j = current
         l,m = target
-        cost = abs(i-l)+abs(j-m)
+        cost = math.sqrt((i-l)**2+(j-m)**2)
         return cost
 
     def pickMoveTarget(self,app):
@@ -90,12 +94,14 @@ class Enemy(objects.tank):
     def moveAim(self,app):
         angleChange = self.aimSpeed*app.timeConstant
         bullet = None
+        self.currentAngle %= math.pi*2
         if(abs(self.currentAngle - self.targetAngle) < abs(angleChange)):
             self.currentAngle = self.targetAngle
         else:
             mag = abs((self.targetAngle-self.currentAngle))
             dir = (self.targetAngle-self.currentAngle)/mag
-            if mag > 180: dir = -dir
+            if mag > math.pi: dir = -dir
+            print(f'Mag: {mag}, Dir: {dir}, current: {self.currentAngle}, target {self.targetAngle}')
             self.currentAngle += angleChange*dir
         self.rotateTurretImage(-self.currentAngle-math.pi/2)
 
@@ -112,18 +118,18 @@ class Enemy(objects.tank):
         self.pickAimTarget(app)
         return bullet
 
-    def followPath(self,app,layout):
+    def followPath(self,app,layout,):
         if(self.path != None and len(self.path) > 0):
             self.getMovementDir()
-            self.move(self.speed*app.timeConstant,layout)
+            self.move(self.speed*app.timeConstant,layout,app.currentHoles)
             if(locationToCell((self.x,self.y)) == self.path[0]):
                 self.path.pop(0)
-        elif self.findDelay < 3:
-            self.findDelay += app.timeConstant
+        elif self.timeSinceLastFind > self.findDelay:
+            self.timeSinceLastFind += app.timeConstant
         else: 
             self.path = self.findPath(app)
             print(self.path)
-            self.findDelay = 0
+            self.timeSinceLastFind = 0
     
     def getMovementDir(self):
         if(len(self.path)>0):
@@ -138,32 +144,39 @@ class Enemy(objects.tank):
                 self.dy = yVec/magnitude
         else:
             self.dx,self.dy = 0,0
-            self.findDelay += 3
+            self.timeSinceLastFind += 5
 
 class brownEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y,0,'images\\brownTank.png','images\\brownTurret.png')
+        super().__init__(x, y,0,1,'images\\brownTank.png','images\\brownTurret.png')
         self.aimDelay = 5
         self.aimSpeed = math.pi/8
     def pickAimTarget(self, app):
         self.timeSinceLastAim += app.timeConstant
+        picker = random.randint(0,2)
         if(self.timeSinceLastAim > self.aimDelay):
-            self.targetAngle = random.randint(0,359)*math.pi/180
+            if(picker < 2):
+                self.targetAngle = random.randint(0,359)*math.pi/180
+            else:
+                xp,yp = app.player.getPos()
+                hyp = ((self.x-xp)**2 + (self.y - yp)**2)**.5
+                xPart = xp-self.x
+                yPart = yp-self.y
+                self.targetAngle = math.atan2(yPart,xPart)
             self.timeSinceLastAim = 0
     def followPath(self,app,layout):
         pass
 
-
 class greyEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y, 100,'images\\greyTank.png','images\\greyTurret.png')
+        super().__init__(x, y, 100,1,'images\\greyTank.png','images\\greyTurret.png')
 
 class tealEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y, 100,'images\\tealTank.png','images\\tealTurret.png')
-        #self.aimSpeed = math.pi/8
+        super().__init__(x, y, 100,1,'images\\tealTank.png','images\\tealTurret.png')
+        self.aimSpeed = math.pi/2
         self.fireDelay = 1.5
-        self.aimDelay = .5
+        self.aimDelay = .25
     def fire(self,dx,dy):
         if(self.currentBullets < self.maxBullets):
             magnitude = math.sqrt(dx**2+dy**2)
@@ -175,24 +188,22 @@ class tealEnemy(Enemy):
         return None
 class yellowEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y, 100,'images\\yellowTank.png','images\\yellowTurret.png')
+        super().__init__(x, y, 100,1,'images\\yellowTank.png','images\\yellowTurret.png')
         self.aimSpeed = math.pi/8
         self.fireDelay = 1.5
         self.aimDelay = .5
 class redEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y, 100,'images\\redTank.png','images\\redTurret.png')
+        super().__init__(x, y, 100,3,'images\\redTank.png','images\\redTurret.png')
         self.aimSpeed = math.pi/8
         self.fireDelay = .5
         self.aimDelay = .5
-        self.maxBullets = 3
 class greenEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y, 100,'images\\greenTank.png','images\\greenTurret.png')
+        super().__init__(x, y, 100,2,'images\\greenTank.png','images\\greenTurret.png')
         self.aimSpeed = math.pi/8
         self.fireDelay = .5
         self.aimDelay = .5
-        self.maxBullets = 2
     def followPath(self,app,layout):
         pass
     def fire(self,dx,dy):
@@ -216,8 +227,7 @@ class greenEnemy(Enemy):
 
 class purpleEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y, 100,'images\\purpleTank.png','images\\purpleTurret.png')
+        super().__init__(x, y, 100,5,'images\\purpleTank.png','images\\purpleTurret.png')
         self.aimSpeed = math.pi/8
         self.fireDelay = .5
         self.aimDelay = .5
-        self.maxBullets = 5 

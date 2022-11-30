@@ -12,18 +12,21 @@ def locationToCell(location):
     j = round((y-20)/40)
     return (i-1,j-1)
     
-def toTupleList(level):
+def toTupleList(level,num):
     tupleList = []
     for i in range(len(level)):
         for j in range(len(level[0])):
-            if level[i][j] == 1:
+            if level[i][j] == num:
                 tupleList.append((j,i))
     return tupleList
+
 
 def hitTaken(app):
     app.paused = True
     app.hitPause = True
     app.time0 = time.time()
+    for bullet in app.bullets:
+        bullet.destroyBullet()
 
 def calcPlayerMove(app):
     dx,dy = 0,0

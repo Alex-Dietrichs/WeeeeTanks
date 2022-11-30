@@ -13,6 +13,7 @@ def appStarted(app):
     app.enemyTanks = []
     app.bullets = []
     app.currentLayout = []
+    app.currentHoles = []
     app.levels = initLevels()
     app.currentLevel = 4
     app.missionLoading = False
@@ -20,7 +21,8 @@ def appStarted(app):
     app.wallSize = 50
     #image from https://www.textures-resource.com/fullview/12548/
     app.background = app.scaleImage(app.loadImage('images\\background.png'),1/1.8)
-    app.wall = app.scaleImage(app.loadImage('images\\wall.png'),1/3.9)
+    app.wall = app.scaleImage(app.loadImage('images\\wall2.1.png'),1/3.75)
+    app.hole = app.scaleImage(app.loadImage('images\\hole.png'),1/3.75)
     #app.xWall = app.loadImage('images\\wall2.1.png').resize((40*24,40))
     #app.yWall = app.loadImage('images\\wall2.1.png').resize((40,40*26))
     app.time0 = time.time()
@@ -103,14 +105,15 @@ def lost_timerFired(app):
         appStarted(app)
 
 #Initializing
-#level format is list of tuple (Player,EnemyList,WallTupleList)
+#level format is list of tuple (Player,EnemyList,WallTupleList,HoleTupleList)
 def initLevels():
     gameLevels = []
     for i in range(levels.totalLevels):
         tempPlayer = copy.copy(levels.playerList[i])
         tempEnemies = copy.copy(levels.enemyList[i])
-        tempLayout = copy.copy(toTupleList(levels.layoutList[i]))
-        gameLevels.append((tempPlayer,tempEnemies,tempLayout))
+        tempLayout = copy.copy(toTupleList(levels.layoutList[i],1))
+        tempHoles = copy.copy(toTupleList(levels.layoutList[i],2))
+        gameLevels.append((tempPlayer,tempEnemies,tempLayout,tempHoles))
     return gameLevels
 
 def startLevel(app):
@@ -123,6 +126,7 @@ def startLevel(app):
         tank.y = tank.starty
         tank.initImage(app)
     app.currentLayout = app.levels[app.currentLevel-1][2]
+    app.currentHoles = app.levels[app.currentLevel-1][3]
     app.bullets = []
     app.mode = 'game'
     app.dir = controls.controller()
@@ -153,20 +157,21 @@ def doCollisions(app):
         for j in range(i+1,len(app.bullets)):
             if (app.bullets[i].checkCollision(app.bullets[j].getPos(),
             app.bullets[j].getSize())):
-                app.bullets[i].destroyBullet()
-                app.bullets[j].destroyBullet()
                 if(app.bullets[i] in newBullets):
+                    app.bullets[i].destroyBullet()
                     newBullets.remove(app.bullets[i])
                 if(app.bullets[j] in newBullets):
+                    app.bullets[j].destroyBullet()
                     newBullets.remove(app.bullets[j])
         for tank in app.enemyTanks:
             if (app.bullets[i].checkCollision(tank.getPos(),tank.getSize())):
-                app.bullets[i].destroyBullet()
                 if(app.bullets[i] in newBullets):
+                    app.bullets[i].destroyBullet()
                     newBullets.remove(app.bullets[i])
                 app.enemyTanks.remove(tank)
         if(app.bullets[i].checkCollision(app.player.getPos(),app.player.getSize())):
             if(app.bullets[i] in newBullets):
+                app.bullets[i].destroyBullet()
                 newBullets.remove(app.bullets[i])
             hitTaken(app)
     app.bullets = copy.copy(newBullets)
@@ -215,7 +220,7 @@ def doMove(app):
     calcPlayerMove(app)
     if(app.player.dx != 0 or app.player.dy != 0):
         app.player.rotateImage()
-    app.player.move(app.player.getSpeed()*app.timeConstant, app.currentLayout)
+    app.player.move(app.player.getSpeed()*app.timeConstant, app.currentLayout,app.currentHoles)
     for enemy in app.enemyTanks:
         enemy.followPath(app,app.currentLayout)
         if(enemy.dx != 0 or enemy.dy != 0):
