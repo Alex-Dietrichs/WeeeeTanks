@@ -14,24 +14,28 @@ def appStarted(app):
     app.bullets = []
     app.currentLayout = []
     app.levels = initLevels()
-    app.currentLevel = 0
+    app.currentLevel = 4
     app.missionLoading = False
     app.lives = 3
     app.wallSize = 50
     #image from https://www.textures-resource.com/fullview/12548/
-    app.background = app.scaleImage(app.loadImage('images\\background.png'),1/2)
+    app.background = app.scaleImage(app.loadImage('images\\background.png'),1/1.8)
+    app.wall = app.scaleImage(app.loadImage('images\\wall.png'),1/3.9)
+    #app.xWall = app.loadImage('images\\wall2.1.png').resize((40*24,40))
+    #app.yWall = app.loadImage('images\\wall2.1.png').resize((40,40*26))
     app.time0 = time.time()
     app.mode = 'home'
-    app.timerDelay = 25
+    app.timerDelay = 20
     app.timeConstant = app.timerDelay/1000
     app.paused = False
     app.hitPause = False
     app.time2 = 0
     app.frames = 0
     app.dir = controls.controller()
-
 #Game
 def game_timerFired(app):
+    #print(f'Total Frame Time: {time.time()-app.time2}')
+    #app.time2 = time.time()
     if not app.paused:
         doCollisions(app)
         doRicochet(app)
@@ -77,8 +81,8 @@ def game_mouseMoved(app,event):
 
 #Home
 def home_mouseReleased(app, event):
-    if(event.x > 320 and event.x < 720
-     and event.y > 220 and event.y < 420):
+    if(event.x > 280 and event.x < 680
+     and event.y > 260 and event.y < 460):
         completeLevel(app)
 
 #Loading
@@ -116,7 +120,7 @@ def startLevel(app):
     app.enemyTanks = app.levels[app.currentLevel-1][1]
     for tank in app.enemyTanks:
         tank.x = tank.startx
-        tank.y - tank.starty
+        tank.y = tank.starty
         tank.initImage(app)
     app.currentLayout = app.levels[app.currentLevel-1][2]
     app.bullets = []
@@ -169,15 +173,17 @@ def doCollisions(app):
 
 def doWallRicochet(app,bullet):
     for wallCell in app.currentLayout:
-        i,j = wallCell
-        wx,wy = cellToLocation((i,j))
+        wx,wy = cellToLocation(wallCell)
         if(bullet.checkCollision((wx,wy),(40,40))):
             x,y = bullet.getPos()
             dx,dy = bullet.getVelocity()
             dx *= (bullet.getSpeed() * app.timeConstant)
             dy *= (bullet.getSpeed() * app.timeConstant)
-            x-=dx
-            y-= dy
+            while True:
+                x-= dx/5
+                y-= dy/5
+                if((y>wy+20 or y<wy-20) or (x>wx+20 or x<wx-20)):
+                    break
             if(y>wy+20 or y<wy-20):
                 bullet.dy = -bullet.dy
                 if(bullet.ricochet() and bullet in app.bullets):
@@ -219,4 +225,4 @@ def doMove(app):
             tempBullet.initImage(app)
             app.bullets.append(tempBullet)
 
-runApp(width=1040, height=640)
+runApp(width=960, height=720)
