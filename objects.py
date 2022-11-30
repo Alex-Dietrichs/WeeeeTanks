@@ -81,8 +81,8 @@ class tank(baseObject):
         self.currentBullets -= 1
     def layMine(self):
         pass
-    def move(self,relativeSpeed,layout,holeLayout):
-        self.layoutOkay(relativeSpeed,layout,holeLayout)
+    def move(self,relativeSpeed,layoutSet):
+        self.layoutOkay(relativeSpeed,layoutSet)
         if((self.x>60 or self.dx > 0) and (self.x<960-60 or self.dx < 0) and self.xOkay):
             self.x += self.dx * relativeSpeed
             self.efdx = self.dx
@@ -93,17 +93,19 @@ class tank(baseObject):
             self.efdy = self.dy
         else:
             self.efdy = 0
-    def layoutOkay(self,relativeSpeed,layout,holeLayout):
+    def layoutOkay(self,relativeSpeed,layoutSet):
         self.xOkay,self.yOkay = True,True
-        tempLayout = layout + holeLayout
-        for wallCell in tempLayout:
-            wx,wy = cellToLocation(wallCell)
-            if((self.y<wy+35 and self.y > wy-35) and abs(self.x-wx) < 40):#Within Y bounds
-                if (self.x>wx and self.dx < 0) or (self.x<wx and self.dx > 0):
-                    self.xOkay = False
-            if((self.x<wx+35 and self.x > wx-35) and abs(self.y-wy) < 40):#Within X bounds
-                if (self.y>wy and self.dy < 0) or (self.y<wy and self.dy > 0):
-                    self.yOkay = False
+        i,j = locationToCell(self.getPos())
+        check = [(i+1,j),(i-1,j),(i,j+1),(i,j-1),(i+1,j+1),(i+1,j-1),(i-1,j-1),(i-1,j+1)]
+        for cell in check:
+            if cell in layoutSet:
+                wx,wy = cellToLocation(cell)
+                if((self.y<wy+35 and self.y > wy-35) and abs(self.x-wx) < 40):#Within Y bounds
+                    if (self.x>wx and self.dx < 0) or (self.x<wx and self.dx > 0):
+                        self.xOkay = False
+                if((self.x<wx+35 and self.x > wx-35) and abs(self.y-wy) < 40):#Within X bounds
+                    if (self.y>wy and self.dy < 0) or (self.y<wy and self.dy > 0):
+                        self.yOkay = False
 
     def initImage(self, app):
         self.loadedImage = app.scaleImage(app.loadImage(self.imagePath),1/5.75)
@@ -126,7 +128,7 @@ class tank(baseObject):
 
 class bullet(baseObject):
     def __init__(self, x, y,dx,dy,creator) -> None:
-        super().__init__(x,y,7.5,7.5,speed=400,imagePath='images\\bullet.png')
+        super().__init__(x,y,8,8,speed=400,imagePath='images\\bullet.png')
         self.hyp = math.sqrt(dx**2+dy**2)
         self.dx,self.dy = dx/self.hyp,dy/self.hyp
         self.creator = creator
@@ -143,7 +145,7 @@ class bullet(baseObject):
         self.rotateImage()
         return False
     def initImage(self,app):
-        self.loadedImage = app.scaleImage(app.loadImage(self.imagePath),1/3)
+        self.loadedImage = app.bulletPNG
         self.image = self.loadedImage
         self.rotateImage()
 
@@ -153,3 +155,7 @@ class fastBullet(bullet):
         self.imagePath = 'images\\fastBullet.png'
         self.speed = 800
         self.ricochetCount = 1
+    def initImage(self,app):
+        self.loadedImage = app.fastBulletPNG
+        self.image = self.loadedImage
+        self.rotateImage()

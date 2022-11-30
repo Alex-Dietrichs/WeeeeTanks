@@ -16,7 +16,7 @@ class Enemy(objects.tank):
         self.timeSinceLastFire = 1.5
         #Changeable
         self.aimSpeed = math.pi/4
-        self.fireDelay = 1.5
+        self.fireDelay = 1
         self.aimDelay = .5
         self.findDelay = 5
         self.time0 = 0
@@ -47,7 +47,7 @@ class Enemy(objects.tank):
             next = [(i+1,j),(i-1,j),(i,j+1),(i,j-1),(i+1,j+1),(i+1,j-1),(i-1,j-1),(i-1,j+1)]
             for nextPos in next:
                 (k,p) = nextPos
-                if(k>=0 and k< 22 and p>=0 and p < 16 and nextPos not in app.currentLayout):
+                if(k>=0 and k< 22 and p>=0 and p < 16 and nextPos not in app.currentTotalSet):
                     tempgScore = gScore[current] + 1
                     if(tempgScore < gScore.get(nextPos,10000)):
                         previous[nextPos] = current
@@ -100,8 +100,6 @@ class Enemy(objects.tank):
         else:
             mag = abs((self.targetAngle-self.currentAngle))
             dir = (self.targetAngle-self.currentAngle)/mag
-            if mag > math.pi: dir = -dir
-            print(f'Mag: {mag}, Dir: {dir}, current: {self.currentAngle}, target {self.targetAngle}')
             self.currentAngle += angleChange*dir
         self.rotateTurretImage(-self.currentAngle-math.pi/2)
 
@@ -118,10 +116,10 @@ class Enemy(objects.tank):
         self.pickAimTarget(app)
         return bullet
 
-    def followPath(self,app,layout,):
+    def followPath(self,app):
         if(self.path != None and len(self.path) > 0):
             self.getMovementDir()
-            self.move(self.speed*app.timeConstant,layout,app.currentHoles)
+            self.move(self.speed*app.timeConstant,app.currentTotalSet)
             if(locationToCell((self.x,self.y)) == self.path[0]):
                 self.path.pop(0)
         elif self.timeSinceLastFind > self.findDelay:
@@ -164,7 +162,7 @@ class brownEnemy(Enemy):
                 yPart = yp-self.y
                 self.targetAngle = math.atan2(yPart,xPart)
             self.timeSinceLastAim = 0
-    def followPath(self,app,layout):
+    def followPath(self,app):
         pass
 
 class greyEnemy(Enemy):
@@ -204,7 +202,7 @@ class greenEnemy(Enemy):
         self.aimSpeed = math.pi/8
         self.fireDelay = .5
         self.aimDelay = .5
-    def followPath(self,app,layout):
+    def followPath(self,app):
         pass
     def fire(self,dx,dy):
         if(self.currentBullets < self.maxBullets):

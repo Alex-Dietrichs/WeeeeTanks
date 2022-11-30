@@ -13,9 +13,11 @@ def appStarted(app):
     app.enemyTanks = []
     app.bullets = []
     app.currentLayout = []
+    app.currentLayoutSet = set()
     app.currentHoles = []
+    app.currentTotalSet = set()
     app.levels = initLevels()
-    app.currentLevel = 4
+    app.currentLevel = 6
     app.missionLoading = False
     app.lives = 3
     app.wallSize = 50
@@ -23,25 +25,30 @@ def appStarted(app):
     app.background = app.scaleImage(app.loadImage('images\\background.png'),1/1.8)
     app.wall = app.scaleImage(app.loadImage('images\\wall2.1.png'),1/3.75)
     app.hole = app.scaleImage(app.loadImage('images\\hole.png'),1/3.75)
+
+    #self made images
+    app.bulletPNG = app.scaleImage(app.loadImage('images\\bullet.png'),1/2.5)
+    app.fastBulletPNG = app.scaleImage(app.loadImage('images\\fastBullet.png'),1/2.5)
     #app.xWall = app.loadImage('images\\wall2.1.png').resize((40*24,40))
     #app.yWall = app.loadImage('images\\wall2.1.png').resize((40,40*26))
-    app.time0 = time.time()
+    app.time0 = 0
     app.mode = 'home'
+
     app.timerDelay = 20
     app.timeConstant = app.timerDelay/1000
+
     app.paused = False
     app.hitPause = False
-    app.time2 = 0
-    app.frames = 0
     app.dir = controls.controller()
+    app.homePress = False
+    app.timeSinceLastFire = 2
 #Game
 def game_timerFired(app):
-    #print(f'Total Frame Time: {time.time()-app.time2}')
-    #app.time2 = time.time()
     if not app.paused:
         doCollisions(app)
         doRicochet(app)
         doMove(app)
+        app.timeSinceLastFire += app.timeConstant
         if(len(app.enemyTanks) == 0):
             completeLevel(app)
     if(app.hitPause and time.time() - app.time0 > 3):
@@ -72,10 +79,12 @@ def game_keyReleased(app, event):
         app.paused = not app.paused
 
 def game_mouseReleased(app, event):
-    tempBullet = app.player.fire(event.x-app.player.x,event.y-app.player.y)
-    if(tempBullet != None):
-        tempBullet.initImage(app)
-        app.bullets.append(tempBullet)
+    if(app.timeSinceLastFire > .05):
+        tempBullet = app.player.fire(event.x-app.player.x,event.y-app.player.y)
+        if(tempBullet != None):
+            tempBullet.initImage(app)
+            app.bullets.append(tempBullet)
+            app.timeSinceLastFire = 0
 
 def game_mouseMoved(app,event):
     theta = math.atan2(event.x-app.player.x,event.y-app.player.y)+math.pi
@@ -84,8 +93,14 @@ def game_mouseMoved(app,event):
 #Home
 def home_mouseReleased(app, event):
     if(event.x > 280 and event.x < 680
-     and event.y > 260 and event.y < 460):
+     and event.y > 260 and event.y < 460 and app.homePress):
         completeLevel(app)
+    else:
+        app.homePress = False
+def home_mousePressed(app, event):
+    if(event.x > 280 and event.x < 680
+     and event.y > 260 and event.y < 460):
+        app.homePress = True
 
 #Loading
 def loading_timerFired(app):
@@ -126,7 +141,9 @@ def startLevel(app):
         tank.y = tank.starty
         tank.initImage(app)
     app.currentLayout = app.levels[app.currentLevel-1][2]
+    app.currentLayoutSet = set(app.currentLayout)
     app.currentHoles = app.levels[app.currentLevel-1][3]
+    app.currentTotalSet = set(app.currentLayout + app.currentHoles)
     app.bullets = []
     app.mode = 'game'
     app.dir = controls.controller()
@@ -177,8 +194,9 @@ def doCollisions(app):
     app.bullets = copy.copy(newBullets)
 
 def doWallRicochet(app,bullet):
-    for wallCell in app.currentLayout:
-        wx,wy = cellToLocation(wallCell)
+    cell = locationToCell(bullet.getPos())
+    if(cell in app.currentLayoutSet):
+        wx,wy = cellToLocation(cell)
         if(bullet.checkCollision((wx,wy),(40,40))):
             x,y = bullet.getPos()
             dx,dy = bullet.getVelocity()
@@ -203,11 +221,11 @@ def doWallRicochet(app,bullet):
 def doRicochet(app):
     for bullet in app.bullets:
         x,y = bullet.getPos()
-        if x < 0+42.5 or x>app.width-42.5:
+        if x < 0+45 or x>app.width-45:
             bullet.dx = -bullet.dx
             if(bullet.ricochet()):
                 app.bullets.remove(bullet)
-        elif y < 0+42.5 or y > app.height-42.5:
+        elif y < 0+45 or y > app.height-45:
             bullet.dy = -bullet.dy
             if(bullet.ricochet()):
                 app.bullets.remove(bullet)
@@ -220,9 +238,9 @@ def doMove(app):
     calcPlayerMove(app)
     if(app.player.dx != 0 or app.player.dy != 0):
         app.player.rotateImage()
-    app.player.move(app.player.getSpeed()*app.timeConstant, app.currentLayout,app.currentHoles)
+    app.player.move(app.player.getSpeed()*app.timeConstant, app.currentTotalSet)
     for enemy in app.enemyTanks:
-        enemy.followPath(app,app.currentLayout)
+        enemy.followPath(app)
         if(enemy.dx != 0 or enemy.dy != 0):
             enemy.rotateImage()
         tempBullet = enemy.moveAim(app)

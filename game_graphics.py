@@ -11,7 +11,7 @@ def game_redrawAll(app, canvas):
         drawPauseScreen(app,canvas)
     #print(f'Total Graphics Draw Time: {time.time()-time0}')
 def drawLevel(app,canvas):
-    #canvas.create_image(app.width/2,app.height/2,image = ImageTk.PhotoImage(app.background))
+    canvas.create_image(app.width/2,app.height/2,image = ImageTk.PhotoImage(app.background))
     #canvas.create_rectangle(0,0,app.width,app.height,fill = '#aa9459',width=0)
     for (row,col) in app.currentLayout:
         drawWall(canvas,app,row,col)
