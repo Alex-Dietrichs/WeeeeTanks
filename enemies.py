@@ -11,17 +11,17 @@ class Enemy(objects.tank):
         self.targetAngle = 0
         self.currentAngle = math.pi/2
         self.timeSinceLastAim = 5
-        self.timeSinceLastFind = 5
         self.path = []
         self.timeSinceLastFire = 1.5
+        self.timeSinceFind = 2
         #Changeable
         self.aimSpeed = math.pi/2
         self.fireDelay = 1
         self.aimDelay = .5
-        self.findDelay = 5
         self.time0 = 0
     #idea from https://en.wikipedia.org/wiki/A*_search_algorithm
     def findPath(self,app):
+        self.timeSinceFind = 0
         self.time0 = time.time()
         startPos = locationToCell((self.x,self.y))
         targetPos = self.pickMoveTarget(app)
@@ -50,7 +50,7 @@ class Enemy(objects.tank):
             for nextPos in next:
                 (k,p) = nextPos
                 if(k>=0 and k< 22 and p>=0 and p < 16 and nextPos not in app.currentTotalSet):
-                    tempgScore = gScore[current] + 1
+                    tempgScore = gScore[current] + math.sqrt((nextPos[0]-i)**2+(nextPos[1]-j)**2)
                     if(tempgScore < gScore.get(nextPos,10000)):
                         previous[nextPos] = current
                         gScore[nextPos] = tempgScore
@@ -65,6 +65,7 @@ class Enemy(objects.tank):
             current = past[current]
             path.insert(0,current)
         print(f'Path finding time: {time.time()-self.time0}')
+        print(self.path)
         return path
 
     def heuristicAlgo(self,current,target):
@@ -87,9 +88,9 @@ class Enemy(objects.tank):
     
     def pickMoveTargetDefensive(self,app):
         n=0
-        while n<10:
-            iDif = random.randint(-5,5)
-            jDif = random.randint(-5,5)
+        while n<20:
+            iDif = random.randint(-8,8)
+            jDif = random.randint(-8,8)
             i,j = locationToCell((self.x,self.y))
             tI,tJ = i+iDif,j+jDif
             if((tI,tJ) not in app.currentLayout and tI>=0 and tI <=22 and tJ >= 0 and tJ <=16): 
@@ -102,8 +103,6 @@ class Enemy(objects.tank):
         return (tI,tJ)
     def pickMoveTargetNone(self,app):
         return None
-    
-    
     
     def pickAimTarget(self, app):
         self.timeSinceLastAim += app.timeConstant
@@ -138,23 +137,23 @@ class Enemy(objects.tank):
                 dy = math.sin(self.currentAngle)
                 bullet = self.fire(dx,dy)
                 self.timeSinceLastFire = 0
+                self.path = self.findPath(app)
         
         self.timeSinceLastFire += app.timeConstant
         self.pickAimTarget(app)
         return bullet
 
     def followPath(self,app):
-        if(self.path != None and len(self.path) > 0):
+        efdsqr = self.efdx**2+self.efdy**2
+        if(self.path == None or (self.timeSinceFind > .1 and (len(self.path) == 0 or efdsqr < .05))):
+            self.path = self.findPath(app)
+        else:
             self.getMovementDir()
             self.move(self.speed*app.timeConstant,app.currentTotalSet)
             if(locationToCell((self.x,self.y)) == self.path[0]):
                 self.path.pop(0)
-        elif self.timeSinceLastFind > self.findDelay:
-            self.timeSinceLastFind += app.timeConstant
-        else: 
-            self.path = self.findPath(app)
-            print(self.path)
-            self.timeSinceLastFind = 0
+            self.timeSinceFind += app.timeConstant
+
     
     def getMovementDir(self):
         if(len(self.path)>0):
@@ -169,7 +168,6 @@ class Enemy(objects.tank):
                 self.dy = yVec/magnitude
         else:
             self.dx,self.dy = 0,0
-            self.timeSinceLastFind += 5
 
     def canSeePlayer(self,app,pos):
         pX,pY = app.player.getPos()
@@ -204,13 +202,12 @@ class brownEnemy(Enemy):
         self.aimSpeed = math.pi/4
     def pickAimTarget(self, app):
         self.timeSinceLastAim += app.timeConstant
-        picker = random.randint(0,2)
+        picker = random.randint(0,1)
         if(self.timeSinceLastAim > self.aimDelay):
-            if(picker < 2):
+            if(picker == 0):
                 self.targetAngle = random.randint(0,359)*math.pi/180
             else:
                 xp,yp = app.player.getPos()
-                hyp = ((self.x-xp)**2 + (self.y - yp)**2)**.5
                 xPart = xp-self.x
                 yPart = yp-self.y
                 self.targetAngle = math.atan2(yPart,xPart)
@@ -279,7 +276,6 @@ class greenEnemy(Enemy):
         self.timeSinceLastAim += app.timeConstant
         if(self.timeSinceLastAim > self.aimDelay):
             xp,yp = app.player.getPos()
-            hyp = ((self.x-xp)**2 + (self.y - yp)**2)**.5
             xPart = xp-self.x
             yPart = yp-self.y
             self.targetAngle = math.atan2(yPart,xPart)

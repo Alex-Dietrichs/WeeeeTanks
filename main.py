@@ -17,14 +17,14 @@ def appStarted(app):
     app.currentHoles = []
     app.currentTotalSet = set()
     app.levels = initLevels()
-    app.currentLevel = 5
+    app.currentLevel = 6
     app.missionLoading = False
     app.lives = 3
     app.wallSize = 50
     #image from https://www.textures-resource.com/fullview/12548/
-    app.background = app.scaleImage(app.loadImage('images\\background.png'),1/1.8)
-    app.wall = app.scaleImage(app.loadImage('images\\wall2.1.png'),1/3.75)
-    app.hole = app.scaleImage(app.loadImage('images\\hole.png'),1/3.75)
+    app.background = ImageTk.PhotoImage(app.scaleImage(app.loadImage('images\\background.png'),1/1.8))
+    app.wall = ImageTk.PhotoImage(app.scaleImage(app.loadImage('images\\wall2.1.png'),1/3.75))
+    app.hole = ImageTk.PhotoImage(app.scaleImage(app.loadImage('images\\hole.png'),1/3.75))
 
     #self made images
     app.bulletPNG = app.scaleImage(app.loadImage('images\\bullet.png'),1/2.5)
@@ -238,7 +238,7 @@ def doMove(app):
     calcPlayerMove(app)
     if(app.player.dx != 0 or app.player.dy != 0):
         app.player.rotateImage()
-    app.player.move(app.player.getSpeed()*app.timeConstant, app.currentTotalSet)
+        app.player.move(app.player.getSpeed()*app.timeConstant, app.currentTotalSet)
     for enemy in app.enemyTanks:
         enemy.followPath(app)
         if(enemy.dx != 0 or enemy.dy != 0):

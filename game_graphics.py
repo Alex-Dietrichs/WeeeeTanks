@@ -11,7 +11,7 @@ def game_redrawAll(app, canvas):
         drawPauseScreen(app,canvas)
     #print(f'Total Graphics Draw Time: {time.time()-time0}')
 def drawLevel(app,canvas):
-    canvas.create_image(app.width/2,app.height/2,image = ImageTk.PhotoImage(app.background))
+    canvas.create_image(app.width/2,app.height/2,image = app.background)
     #canvas.create_rectangle(0,0,app.width,app.height,fill = '#aa9459',width=0)
     for (row,col) in app.currentLayout:
         drawWall(canvas,app,row,col)
@@ -28,10 +28,10 @@ def drawOutsideWalls(app,canvas):
         canvas.create_rectangle(app.width,0,app.width-40,app.height,fill = '#8a6b33',width = 0)
 def drawWall(canvas,app,row,col):
     cx,cy = cellToLocation((row,col))
-    canvas.create_image(cx,cy,image = ImageTk.PhotoImage(app.wall))
+    canvas.create_image(cx,cy,image = app.wall)
 def drawHole(canvas,app,row,col):
     cx,cy = cellToLocation((row,col))
-    canvas.create_image(cx,cy,image=ImageTk.PhotoImage(app.hole))
+    canvas.create_image(cx,cy,image=app.hole)
 def drawObjects(app,canvas):
     for tank in app.enemyTanks:
         tank.draw(canvas)
