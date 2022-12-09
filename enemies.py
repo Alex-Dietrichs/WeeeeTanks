@@ -17,12 +17,10 @@ class Enemy(objects.tank):
         self.aimSpeed = pi/2
         self.fireDelay = 1.5
         self.aimDelay = .1
-        self.time0 = 0
         self.canLayMine = False
     #idea from https://en.wikipedia.org/wiki/A*_search_algorithm
     def findPath(self,app):
         self.timeSinceFind = 0
-        self.time0 = time.time()
         startPos = locationToCell((self.x,self.y))
         targetPos = self.pickMoveTarget(app)
         if(targetPos == None):
@@ -65,8 +63,6 @@ class Enemy(objects.tank):
         while current in past:
             current = past[current]
             path.insert(0,current)
-        print(f'Path finding time: {time.time()-self.time0}')
-        print(path)
         return path
 
     def heuristicAlgo(self,current,target):

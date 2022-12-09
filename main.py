@@ -123,7 +123,10 @@ def home_mousePressed(app, event):
     if(event.x > 280 and event.x < 680
      and event.y > 260 and event.y < 460):
         app.homePress = True
-
+def home_keyReleased(app,event):
+    key = event.key
+    if key.isdigit():
+        app.currentLevel = int(key)
 #Loading
 def loading_timerFired(app):
     if(time.time() - app.time0 > 1):
