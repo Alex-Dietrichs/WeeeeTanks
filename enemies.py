@@ -75,8 +75,8 @@ class Enemy(objects.tank):
         n=0
         goodFind = True
         while n<10:
-            iDif = randint(-8,8)
-            jDif = randint(-8,8)
+            iDif = randint(-5,5)
+            jDif = randint(-5,5)
             i,j = locationToCell((self.x,self.y))
             tI,tJ = i+iDif,j+jDif
             if((tI,tJ) not in app.currentLayout and tI>=0 and tI <=22 and tJ >= 0 and tJ <=16
@@ -91,9 +91,9 @@ class Enemy(objects.tank):
     def pickMoveTargetDefensive(self,app):
         n=0
         goodFind = False
-        while n<20:
-            iDif = randint(-6,6)
-            jDif = randint(-6,6)
+        while n<10:
+            iDif = randint(-5,5)
+            jDif = randint(-5,5)
             i,j = locationToCell((self.x,self.y))
             tI,tJ = i+iDif,j+jDif
             if((tI,tJ) not in app.currentTotalSet and tI>=0 and tI <=22 and tJ >= 0 and tJ <=16 
@@ -117,9 +117,9 @@ class Enemy(objects.tank):
     def pickMoveTargetAggressive(self,app):
         n=0
         goodFind = False
-        while n<20:
-            iDif = randint(-10,10)
-            jDif = randint(-10,10)
+        while n<10:
+            iDif = randint(-5,5)
+            jDif = randint(-5,5)
             i,j = locationToCell((self.x,self.y))
             tI,tJ = i+iDif,j+jDif
             if((tI,tJ) not in app.currentLayout and tI>=0 and tI <=22 and tJ >= 0 and tJ <=16
@@ -135,7 +135,6 @@ class Enemy(objects.tank):
             return (tI,tJ)
         else:
             return self.backupPickMoveTarget(app)
-
     def pickMoveTargetInter(self,app):
         n=0
         goodFind = False
@@ -171,7 +170,6 @@ class Enemy(objects.tank):
             n+=1
         return (tI,tJ)
     
-
     def pickAimTarget(self, app):
         self.timeSinceLastAim += app.timeConstant
         if(self.timeSinceLastAim > self.aimDelay):

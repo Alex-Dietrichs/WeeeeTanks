@@ -21,7 +21,6 @@ def appStarted(app):
     app.currentLevel = 0
     app.missionLoading = False
     app.lives = 3
-    app.wallSize = 50
     #image from https://www.textures-resource.com/fullview/12548/
     app.background = ImageTk.PhotoImage(app.scaleImage(app.loadImage('images\\background.png'),1/1.8))
     app.wall = ImageTk.PhotoImage(app.scaleImage(app.loadImage('images\\wall2.1.png'),1/3.75))
