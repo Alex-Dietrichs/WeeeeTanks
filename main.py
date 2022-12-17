@@ -47,9 +47,8 @@ def appStarted(app):
     app.time0 = time.time()
     app.mode = 'home'
 
-    app.timerDelay = 25
-    app.timeConstant = app.timerDelay/1000
-
+ 
+    app.timeConstant = 60/1000
     app.paused = False
     app.hitPause = False
     app.winPause = False
