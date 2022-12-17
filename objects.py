@@ -1,6 +1,13 @@
 import math
 from cmu_112_graphics import *
 from helperFunc import *
+import platform
+
+if (platform.system() == "Windows"):
+    imagePrefix = "images\\"
+else:
+    imagePrefix = "images/"
+
 class baseObject():
     def __init__(self,x,y,height,width,speed,imagePath) -> None:
         self.width = width
@@ -57,7 +64,7 @@ class baseObject():
         return angle*180/math.pi
 
 class tank(baseObject):
-    def __init__(self, x, y, speed, maxBullets, imagePath,turretImagePath = 'images\\playerTurret.png' ) -> None:
+    def __init__(self, x, y, speed, maxBullets, imagePath,turretImagePath = imagePrefix + 'playerTurret.png' ) -> None:
         super().__init__(x,y,40, 40, speed, imagePath)
         self.maxBullets = maxBullets
         self.maxMines = 0
@@ -142,7 +149,7 @@ class tank(baseObject):
 
 class bullet(baseObject):
     def __init__(self, x, y,dx,dy,creator) -> None:
-        super().__init__(x,y,8,8,speed=400,imagePath='images\\bullet.png')
+        super().__init__(x,y,8,8,speed=400,imagePath=imagePrefix + 'bullet.png')
         self.hyp = math.sqrt(dx**2+dy**2)
         self.dx,self.dy = dx/self.hyp,dy/self.hyp
         self.creator = creator
@@ -168,7 +175,7 @@ class bullet(baseObject):
 class fastBullet(bullet):
     def __init__(self, x, y, dx, dy, creator) -> None:
         super().__init__(x, y, dx, dy, creator)
-        self.imagePath = 'images\\fastBullet.png'
+        self.imagePath = imagePrefix + 'fastBullet.png'
         self.speed = 800
         self.ricochetCount = 1
     def initImage(self,app):

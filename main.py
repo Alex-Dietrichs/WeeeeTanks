@@ -7,6 +7,13 @@ from loading_graphics import *
 from home_graphics import *
 from lost_graphics import *
 from won_graphics import *
+import platform
+
+if (platform.system() == "Windows"):
+    imagePrefix = "images\\"
+else:
+    imagePrefix = "images/"
+
 def appStarted(app): 
     app.enemyTanks = []
     app.bullets = []
@@ -22,21 +29,21 @@ def appStarted(app):
     app.missionLoading = False
     app.lives = 3
     #image from https://www.textures-resource.com/fullview/12548/
-    app.background = ImageTk.PhotoImage(app.scaleImage(app.loadImage('images\\background.png'),1/1.8))
-    app.wall = ImageTk.PhotoImage(app.scaleImage(app.loadImage('images\\wall2.1.png'),1/3.75))
-    app.hole = ImageTk.PhotoImage(app.scaleImage(app.loadImage('images\\hole.png'),1/3.75))
-    app.destroyableWall = ImageTk.PhotoImage(app.scaleImage(app.loadImage('images\\destroyableWall.png'),1/3.75))
+    app.background = ImageTk.PhotoImage(app.scaleImage(app.loadImage(imagePrefix + 'background.png'),1/1.8))
+    app.wall = ImageTk.PhotoImage(app.scaleImage(app.loadImage(imagePrefix + 'wall2.1.png'),1/3.75))
+    app.hole = ImageTk.PhotoImage(app.scaleImage(app.loadImage(imagePrefix + 'hole.png'),1/3.75))
+    app.destroyableWall = ImageTk.PhotoImage(app.scaleImage(app.loadImage(imagePrefix + 'destroyableWall.png'),1/3.75))
 
     #image from wii tanks game
-    app.mineImage = ImageTk.PhotoImage(app.scaleImage(app.loadImage('images\\mine.png'),1/4.5))
-    app.activeMineImage = ImageTk.PhotoImage(app.scaleImage(app.loadImage('images\\activeMine.png'),1/4.5))
+    app.mineImage = ImageTk.PhotoImage(app.scaleImage(app.loadImage(imagePrefix + 'mine.png'),1/4.5))
+    app.activeMineImage = ImageTk.PhotoImage(app.scaleImage(app.loadImage(imagePrefix + 'activeMine.png'),1/4.5))
 
     #self made images
-    app.bulletPNG = app.scaleImage(app.loadImage('images\\bullet.png'),1/2.5)
-    app.fastBulletPNG = app.scaleImage(app.loadImage('images\\fastBullet.png'),1/2.5)
-    app.explosion = ImageTk.PhotoImage(app.scaleImage(app.loadImage('images\\explosion.png'),1/4))
-    app.mineExplosion = ImageTk.PhotoImage(app.scaleImage(app.loadImage('images\\explosion.png'),1/2.5))
-    app.bulletExplosion = ImageTk.PhotoImage(app.scaleImage(app.loadImage('images\\explosion.png'),1/8))
+    app.bulletPNG = app.scaleImage(app.loadImage(imagePrefix + 'bullet.png'),1/2.5)
+    app.fastBulletPNG = app.scaleImage(app.loadImage(imagePrefix + 'fastBullet.png'),1/2.5)
+    app.explosion = ImageTk.PhotoImage(app.scaleImage(app.loadImage(imagePrefix + 'explosion.png'),1/4))
+    app.mineExplosion = ImageTk.PhotoImage(app.scaleImage(app.loadImage(imagePrefix + 'explosion.png'),1/2.5))
+    app.bulletExplosion = ImageTk.PhotoImage(app.scaleImage(app.loadImage(imagePrefix + 'explosion.png'),1/8))
     app.time0 = time.time()
     app.mode = 'home'
 

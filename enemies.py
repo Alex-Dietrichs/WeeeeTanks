@@ -2,6 +2,14 @@ import objects
 from random import randint
 from math import cos,sin
 from helperFunc import *
+import platform
+
+if (platform.system() == "Windows"):
+    imagePrefix = "images\\"
+else:
+    imagePrefix = "images/"
+
+
 class Enemy(objects.tank):
     def __init__(self, x, y, speed, maxBullets, imagePath, turretImagePath) -> None:
         super().__init__(x, y, speed,maxBullets, imagePath,turretImagePath)
@@ -253,7 +261,7 @@ class Enemy(objects.tank):
 
 class brownEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y,0,1,'images\\brownTank.png','images\\brownTurret.png')
+        super().__init__(x, y,0,1,imagePrefix + 'brownTank.png',imagePrefix + 'brownTurret.png')
         self.aimDelay = 1
         self.aimSpeed = pi/4
     def pickAimTarget(self, app):
@@ -275,13 +283,13 @@ class brownEnemy(Enemy):
 
 class greyEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y, 100,1,'images\\greyTank.png','images\\greyTurret.png')
+        super().__init__(x, y, 100,1,imagePrefix + 'greyTank.png',imagePrefix + 'greyTurret.png')
     def pickMoveTarget(self, app): #Defensive
        return self.pickMoveTargetDefensive(app)
 
 class tealEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y, 100,1,'images\\tealTank.png','images\\tealTurret.png')
+        super().__init__(x, y, 100,1,imagePrefix + 'tealTank.png',imagePrefix + 'tealTurret.png')
         self.aimSpeed = pi
     def fire(self,dx,dy):
         if(self.currentBullets < self.maxBullets):
@@ -297,7 +305,7 @@ class tealEnemy(Enemy):
 
 class yellowEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y, 200,1,'images\\yellowTank.png','images\\yellowTurret.png')
+        super().__init__(x, y, 200,1,imagePrefix + 'yellowTank.png',imagePrefix + 'yellowTurret.png')
         self.aimSpeed = pi
         self.mineDelay = 2
         self.maxMines = 4
@@ -320,7 +328,7 @@ class yellowEnemy(Enemy):
 
 class redEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y, 100,3,'images\\redTank.png','images\\redTurret.png')
+        super().__init__(x, y, 100,3,imagePrefix + 'redTank.png',imagePrefix + 'redTurret.png')
         self.aimSpeed = pi
         self.fireDelay = .5
     def pickMoveTarget(self, app):
@@ -328,7 +336,7 @@ class redEnemy(Enemy):
 
 class greenEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y, 0,2,'images\\greenTank.png','images\\greenTurret.png')
+        super().__init__(x, y, 0,2,imagePrefix + 'greenTank.png',imagePrefix + 'greenTurret.png')
         self.aimSpeed = pi
         self.fireDelay = .5
     def followPath(self,app):
@@ -387,7 +395,7 @@ class greenEnemy(Enemy):
 
 class purpleEnemy(Enemy):
     def __init__(self, x, y) -> None:
-        super().__init__(x, y, 100,5,'images\\purpleTank.png','images\\purpleTurret.png')
+        super().__init__(x, y, 100,5,imagePrefix + 'purpleTank.png',imagePrefix + 'purpleTurret.png')
         self.aimSpeed = pi/8
         self.fireDelay = .5
         self.aimDelay = .5
