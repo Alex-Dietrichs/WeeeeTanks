@@ -54,6 +54,7 @@ def appStarted(app):
     app.winPause = False
     app.dir = controls.controller()
     app.homePress = False
+
 #Game
 def game_timerFired(app):
     if not app.paused:
@@ -68,6 +69,9 @@ def game_timerFired(app):
             app.paused = True
             app.winPause = True
             app.time0 = time.time()
+        #app.timeEnd = time.time()
+        #logTimes(app.time2, app.timeEnd, "times.txt")
+
     if(app.hitPause and time.time() - app.time0 > 3):
         resetLevel(app)
     if(app.winPause and time.time() - app.time0 > 1):

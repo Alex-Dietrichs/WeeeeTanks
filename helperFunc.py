@@ -30,6 +30,12 @@ def hitTaken(app):
     for mine in app.currentMines:
         mine.destroyMine(app)
 
+def logTimes(timeStart, timeEnd, exportFile):
+    with open(exportFile,"a") as f:
+        f.write("Start of timer fire " + str(timeStart) + "\n")
+        f.write("Emd of timer fire " + str(timeEnd) + "\n")
+        f.write("Difference between two:" + str(timeEnd - timeStart) + "\n")
+
 def calcPlayerMove(app):
     direc = app.dir
     dx,dy = 0,0
