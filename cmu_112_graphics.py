@@ -639,6 +639,7 @@ class App(object):
         app._root = root = App._theRoot # singleton root!
         root.app = app
         root.geometry(f'{app.width}x{app.height}+{app.winx}+{app.winy}')
+        root.resizable(width=False,height=False)
         app.updateTitle()
         # create the canvas
         root.canvas = app._canvas = WrappedCanvas(app)

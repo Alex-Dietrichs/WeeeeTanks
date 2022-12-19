@@ -42,8 +42,8 @@ def appStarted(app):
     app.time0 = time.time()
     app.mode = 'home'
 
-    #Don't touch these
-    app.timerDelay = 20
+    #Don't touch these, timerDelay works off of tkinter
+    app.timerDelay = 25
     app.timeConstant = app.timerDelay/1000
 
 
@@ -52,7 +52,6 @@ def appStarted(app):
     app.winPause = False
     app.dir = controls.controller()
     app.homePress = False
-
 
 #Game
 def game_timerFired(app):

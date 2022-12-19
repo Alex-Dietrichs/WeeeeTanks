@@ -191,7 +191,7 @@ class mine(baseObject):
         self.active = False
         self.spawnTime = time.time()
         self.timeToActive = 2
-        self.lifespan = 12
+        self.lifespan = 10
     def initImage(self,app):
         self.image = app.mineImage
         self.activeImage = app.activeMineImage
