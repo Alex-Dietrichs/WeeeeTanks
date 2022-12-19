@@ -19,7 +19,7 @@ def appStarted(app):
     app.currentMines = []
     app.currentExplosions = dict()
     app.levels = initLevels()
-    app.currentLevel = 3
+    app.currentLevel = 0
     app.missionLoading = False
     app.lives = 3
     imagePrefix = getImagePrefix()
