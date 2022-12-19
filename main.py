@@ -42,8 +42,11 @@ def appStarted(app):
     app.time0 = time.time()
     app.mode = 'home'
 
- 
-    app.timeConstant = 60/1000
+    #Don't touch these
+    app.timerDelay = 20
+    app.timeConstant = app.timerDelay/1000
+
+
     app.paused = False
     app.hitPause = False
     app.winPause = False
@@ -53,7 +56,7 @@ def appStarted(app):
 #Game
 def game_timerFired(app):
     if not app.paused:
-        app.time2 = time.time()
+        #app.time2 = time.time()
         doCollisions(app)
         doRicochet(app)
         doMove(app)
@@ -75,7 +78,7 @@ def game_timerFired(app):
         completeLevel(app)
     
 def game_keyPressed(app, event):
-    key = event.key
+    key = event.key.lower()
     if(not app.dir.up and key == 'w'):
         app.dir.up = True
     elif(not app.dir.down and key == 's'):

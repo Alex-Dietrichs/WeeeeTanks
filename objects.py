@@ -16,6 +16,7 @@ class baseObject():
         self.image = None
         self.loadedImage = None
         self.imagePath = imagePath
+        self.theta = 0
     def getSize(self):
         return (self.width,self.height)
     def getPos(self):
@@ -23,36 +24,33 @@ class baseObject():
     def setPos(self,pos):
         self.x,self.y = pos
     def draw(self, canvas):
-        canvas.create_image(self.x,self.y,image = ImageTk.PhotoImage(self.image))
+        canvas.create_image(self.x,self.y,image = self.image)
     def initImage(self,app):
         self.loadedImage = app.scaleImage(app.loadImage(self.imagePath),1/4)
         self.image = self.loadedImage
+    
     def rotateImage(self):
-        theta = self.toDegrees(math.atan2(self.dx,self.dy) + math.pi)
-        self.image = self.loadedImage.rotate(angle=theta, resample = Image.Resampling.BILINEAR)
-
+        newtheta = self.toDegrees(math.atan2(self.dx,self.dy) + math.pi)
+        if(newtheta != self.theta):
+            self.theta = newtheta
+            self.image = ImageTk.PhotoImage(self.loadedImage.rotate(angle=newtheta, resample = Image.Resampling.BILINEAR))
+    
     def getSpeed(self):
         return self.speed
     def getVelocity(self):
         return (self.dx,self.dy)
+    
     def move(self,relativeSpeed):
         self.x += self.dx * relativeSpeed
         self.y += self.dy * relativeSpeed
+    
     def checkCollision(self,pos,size):
         x2,y2 = pos
         w2,h2 = size
-        ul1x = self.x - self.width/2
-        ul1y = self.y - self.height/2
-        br1x = self.x + self.width/2
-        br1y = self.y + self.height/2
-        ul2x = x2 - w2/2
-        ul2y = y2 - h2/2
-        br2x = x2 + w2/2
-        br2y = y2 + h2/2
-        if ul1x > br2x or ul2x > br1x:
+        if self.x - self.width/2 > x2 + w2/2 or x2 - w2/2 > self.x + self.width/2:
             return False
 
-        if br1y < ul2y or br2y < ul1y:
+        if self.y + self.height/2 < y2 - h2/2 or y2 + h2/2 < self.y - self.height/2:
             return False
         return True
     @staticmethod
@@ -77,6 +75,8 @@ class tank(baseObject):
         self.timeSinceLastMine = 1
         self.fireDelay = .1
         self.mineDelay = 1
+        self.turretTheta = 0
+    
     def fire(self,dx,dy):
         if(self.currentBullets < self.maxBullets):
             magnitude = math.sqrt(dx**2+dy**2)
@@ -86,10 +86,12 @@ class tank(baseObject):
             self.currentBullets += 1
             return newBullet
         return None
+    
     def bulletDestroyed(self):
         self.currentBullets -= 1
     def mineDestroyed(self):
         self.currentMines -= 1
+    
     def layMine(self,app):
         if(self.currentMines < self.maxMines and self.timeSinceLastMine > self.mineDelay and self.checkMines(app,self.getPos())):
             x,y = cellToLocation(locationToCell(self.getPos()))
@@ -111,6 +113,7 @@ class tank(baseObject):
             self.efdy = self.dy
         else:
             self.efdy = 0
+    
     def layoutOkay(self,layoutSet):
         self.xOkay,self.yOkay = True,True
         i,j = locationToCell(self.getPos())
@@ -127,21 +130,24 @@ class tank(baseObject):
 
     def initImage(self, app):
         self.loadedImage = app.scaleImage(app.loadImage(self.imagePath),1/5.75)
-        self.image = self.loadedImage
         self.turretLoadedImage = app.scaleImage(app.loadImage(self.turretImagePath),1/5.75)
-        self.turretImage = self.turretLoadedImage
+        self.image = ImageTk.PhotoImage(self.loadedImage)
+        self.turretImage = ImageTk.PhotoImage(self.turretLoadedImage)
+    
     def rotateTurretImage(self,theta):
         theta = self.toDegrees(theta)
-        self.turretImage = self.turretLoadedImage.rotate(angle=theta, resample = Image.Resampling.BILINEAR)
-    def rotateImage(self):
-        theta = self.toDegrees(math.atan2(self.efdx,self.efdy) + math.pi)
-        self.image = self.loadedImage.rotate(angle=theta, resample = Image.Resampling.BILINEAR)
+        if(theta != self.turretTheta):
+            self.turretTheta = theta
+            self.turretImage = ImageTk.PhotoImage(
+                self.turretLoadedImage.rotate(angle=theta, resample = Image.Resampling.BILINEAR))
+    #def rotateImage(self):
+    #    theta = self.toDegrees(math.atan2(self.efdx,self.efdy) + math.pi)
+    #    self.image = self.loadedImage.rotate(angle=theta, resample = Image.Resampling.BILINEAR)
     def draw(self, canvas):
         super().draw(canvas)
-        canvas.create_image(self.x,self.y,image = ImageTk.PhotoImage(self.turretImage))
+        canvas.create_image(self.x,self.y,image = self.turretImage)
     def explode(self,app):
         app.currentExplosions[self.getPos()] = (0,app.explosion)
-
 
 class bullet(baseObject):
     def __init__(self, x, y,dx,dy,creator) -> None:
@@ -153,7 +159,7 @@ class bullet(baseObject):
     def destroyBullet(self):
         self.creator.bulletDestroyed()
     def draw(self, canvas):
-        canvas.create_image(self.x,self.y,image = ImageTk.PhotoImage(self.image))
+        canvas.create_image(self.x,self.y,image = self.image)
     def ricochet(self):
         self.ricochetCount += 1
         if(self.ricochetCount > 1):
@@ -163,7 +169,6 @@ class bullet(baseObject):
         return False
     def initImage(self,app):
         self.loadedImage = app.bulletPNG
-        self.image = self.loadedImage
         self.rotateImage()
     def explode(self,app):
         app.currentExplosions[self.getPos()] = (0,app.bulletExplosion)
@@ -176,7 +181,6 @@ class fastBullet(bullet):
         self.ricochetCount = 1
     def initImage(self,app):
         self.loadedImage = app.fastBulletPNG
-        self.image = self.loadedImage
         self.rotateImage()
 
 

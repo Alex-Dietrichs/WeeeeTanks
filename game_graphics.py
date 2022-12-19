@@ -13,7 +13,6 @@ def game_redrawAll(app, canvas):
     #print(f'Total Graphics Draw Time: {time.time()-time0}')
 def drawLevel(app,canvas):
     canvas.create_image(app.width/2,app.height/2,image = app.background)
-    #canvas.create_rectangle(0,0,app.width,app.height,fill = '#aa9459',width=0)
     for cell in app.currentLayout:
         drawWall(canvas,app,cell)
     for cell in app.currentHoles:
@@ -22,9 +21,6 @@ def drawLevel(app,canvas):
         drawDestroyableWall(canvas,app,cell)
     drawOutsideWalls(app,canvas)
 def drawOutsideWalls(app,canvas):
-        #canvas.create_image(app.width/2,20, image=ImageTk.PhotoImage(app.xWall))
-        #canvas.create_image(20,app.height/2, image=ImageTk.PhotoImage(app.yWall))
-        #canvas.create_image(app.width-20,app.height/2, image=ImageTk.PhotoImage(app.yWall))
         canvas.create_rectangle(0,0,app.width,40,fill = '#8a6b33',width = 0)
         canvas.create_rectangle(0,0,40,app.height,fill = '#8a6b33',width = 0)
         canvas.create_rectangle(0,app.height,app.width,app.height-40,fill = '#8a6b33',width = 0)
