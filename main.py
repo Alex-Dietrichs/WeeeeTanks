@@ -19,7 +19,7 @@ def appStarted(app):
     app.currentMines = []
     app.currentExplosions = dict()
     app.levels = initLevels()
-    app.currentLevel = 0
+    app.currentLevel = 3
     app.missionLoading = False
     app.lives = 3
     imagePrefix = getImagePrefix()
@@ -52,6 +52,7 @@ def appStarted(app):
     app.winPause = False
     app.dir = controls.controller()
     app.homePress = False
+
 
 #Game
 def game_timerFired(app):

@@ -33,7 +33,7 @@ class baseObject():
         newtheta = self.toDegrees(math.atan2(self.dx,self.dy) + math.pi)
         if(newtheta != self.theta):
             self.theta = newtheta
-            self.image = ImageTk.PhotoImage(self.loadedImage.rotate(angle=newtheta, resample = Image.Resampling.BILINEAR))
+            self.image = ImageTk.PhotoImage(self.loadedImage.rotate(angle=newtheta))
     
     def getSpeed(self):
         return self.speed
@@ -139,7 +139,7 @@ class tank(baseObject):
         if(theta != self.turretTheta):
             self.turretTheta = theta
             self.turretImage = ImageTk.PhotoImage(
-                self.turretLoadedImage.rotate(angle=theta, resample = Image.Resampling.BILINEAR))
+                self.turretLoadedImage.rotate(angle=theta))
     #def rotateImage(self):
     #    theta = self.toDegrees(math.atan2(self.efdx,self.efdy) + math.pi)
     #    self.image = self.loadedImage.rotate(angle=theta, resample = Image.Resampling.BILINEAR)
