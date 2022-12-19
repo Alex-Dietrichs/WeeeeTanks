@@ -2,12 +2,8 @@ import objects
 from random import randint
 from math import cos,sin
 from helperFunc import *
-import platform
 
-if (platform.system() == "Windows"):
-    imagePrefix = "images\\"
-else:
-    imagePrefix = "images/"
+imagePrefix = getImagePrefix()
 
 
 class Enemy(objects.tank):

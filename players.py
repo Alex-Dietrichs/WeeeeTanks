@@ -1,12 +1,9 @@
 import objects
 from cmu_112_graphics import ImageTk
-from helperFunc import locationToCell
-import platform
+from helperFunc import locationToCell, getImagePrefix
 
-if (platform.system() == "Windows"):
-    imagePrefix = "images\\"
-else:
-    imagePrefix = "images/"
+
+imagePrefix = getImagePrefix()
 
 class player(objects.tank):
     def __init__(self, x, y) -> None:

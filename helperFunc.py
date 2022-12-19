@@ -1,5 +1,6 @@
 from math import sqrt,atan2,pi
 import time
+import platform
 def cellToLocation(cell):
     i,j = cell
     x = 20+40*(i+1)
@@ -149,3 +150,10 @@ def angleCheck(app,pos,cellPos,lookPos):
     dif = abs(abs(angle1)-abs(angle2))
     if(dif < pi/16):
         return True
+
+def getImagePrefix():
+    if (platform.system() == "Windows"):
+        imagePrefix = "images\\"
+    else:
+        imagePrefix = "images/"
+    return imagePrefix

@@ -7,12 +7,6 @@ from loading_graphics import *
 from home_graphics import *
 from lost_graphics import *
 from won_graphics import *
-import platform
-
-if (platform.system() == "Windows"):
-    imagePrefix = "images\\"
-else:
-    imagePrefix = "images/"
 
 def appStarted(app): 
     app.enemyTanks = []
@@ -28,6 +22,7 @@ def appStarted(app):
     app.currentLevel = 0
     app.missionLoading = False
     app.lives = 3
+    imagePrefix = getImagePrefix()
     #image from https://www.textures-resource.com/fullview/12548/
     app.background = ImageTk.PhotoImage(app.scaleImage(app.loadImage(imagePrefix + 'background.png'),1/1.8))
     app.wall = ImageTk.PhotoImage(app.scaleImage(app.loadImage(imagePrefix + 'wall2.1.png'),1/3.75))

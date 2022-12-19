@@ -1,12 +1,8 @@
 import math
 from cmu_112_graphics import *
 from helperFunc import *
-import platform
 
-if (platform.system() == "Windows"):
-    imagePrefix = "images\\"
-else:
-    imagePrefix = "images/"
+imagePrefix = getImagePrefix()
 
 class baseObject():
     def __init__(self,x,y,height,width,speed,imagePath) -> None:
