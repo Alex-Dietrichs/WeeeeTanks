@@ -96,11 +96,10 @@ def canSeeSpace(app,pos,lookPos):
     return True
 
 def canSeeSpaceWithRich(app,pos,lookPos):
-    visEdge = getVisibleEdges(app,pos)
-    for cell in visEdge:
-        cellPos = cellToLocation(cell)
-        if (canSeeSpace(app,cellPos,lookPos) and angleCheck(app,pos,cellPos,lookPos)):
-            return cell
+    viableSpots = getViableEdges(app,pos,lookPos)
+    for wallPos in viableSpots:
+        if (canSeeSpace(app,pos,wallPos) and canSeeSpace(app,wallPos,lookPos)):
+            return locationToCell(wallPos)
     return None
 
 
@@ -110,10 +109,10 @@ def canSeeSpaceWith2Rich(app,pos,lookPos):
     maybe = canSeeSpaceWithRich(app,pos,lookPos)
     if maybe != None:
         return maybe
-    visEdge = getVisibleEdges(app,pos)
+    visEdge = getViableEdges(app,pos)
     for cell in visEdge:
         cellPos = cellToLocation(cell)
-        visEdge2 = getVisibleEdges(app,cellToLocation(cell))
+        visEdge2 = getViableEdges(app,cellToLocation(cell))
         for cell2 in visEdge2:
             cellPos2 = cellToLocation(cell2)
             if (angleCheck(app,pos,cellPos,cellPos2) and angleCheck(app,cellPos,cellPos2,lookPos) 
@@ -122,23 +121,27 @@ def canSeeSpaceWith2Rich(app,pos,lookPos):
     print(time.time() - time0)
     return None
 
-def getVisibleEdges(app,pos):
-    visEdge = set()
-    for i in range(22):
-        cell = (i,0)
-        if canSeeSpace(app,pos,cellToLocation(cell)):
-            visEdge.add(cell)
-        cell = (i,15)
-        if canSeeSpace(app,pos,cellToLocation(cell)):
-            visEdge.add(cell)
-    for j in range(1,15):
-        cell = (0,j)
-        if canSeeSpace(app,pos,cellToLocation(cell)):
-            visEdge.add(cell)
-        cell = (21,j)
-        if canSeeSpace(app,pos,cellToLocation(cell)):
-            visEdge.add(cell)
-    return visEdge
+def getViableEdges(app,pos,lookPos):
+    viableSpots = []
+    x1,y1 = pos
+    x2,y2 = lookPos
+    #bottom wall
+    h = app.height-45
+    Xn = (h-y1)*(x2-x1)/(2*h-y2-y1)
+    viableSpots.append((x1+Xn,h))
+    #top wall
+    h = 45
+    Xn = (h-y1)*(x2-x1)/(2*h-y2-y1)
+    viableSpots.append((x1+Xn,h))
+    #left wall
+    w = 45
+    Yn = (w-x1)*(y2-y1)/(2*w-x2-x1)
+    viableSpots.append((w,y1+Yn))
+    #right wall
+    w = app.width-45
+    Yn = (w-x1)*(y2-y1)/(2*w-x2-x1)
+    viableSpots.append((w,y1+Yn))
+    return viableSpots
 
 
 def angleCheck(app,pos,cellPos,lookPos):

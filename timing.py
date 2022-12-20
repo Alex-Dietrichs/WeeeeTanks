@@ -1,5 +1,4 @@
 import timeit
-
 print(timeit.timeit('locationToCell((100,100))',number=10000, globals=globals()))
 
 def locationToCell(location):
