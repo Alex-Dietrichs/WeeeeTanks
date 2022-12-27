@@ -201,8 +201,9 @@ class mine(baseObject):
         else:
             canvas.create_image(self.x,self.y,image = self.image)
     def destroyMine(self,app):
-        self.creator.mineDestroyed()
-        app.currentMines.remove(self)
+        if(self in app.currentMines):
+            self.creator.mineDestroyed()
+            app.currentMines.remove(self)
     def explode(self,app):
         for tank in app.enemyTanks:
             tX,tY = tank.getPos()

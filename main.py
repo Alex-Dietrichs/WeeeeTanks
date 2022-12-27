@@ -243,8 +243,7 @@ def doCollisions(app):
                 if (mine.checkCollision(tank.getPos(),tank.getSize())):
                     mine.explode(app)
             if(mine.checkCollision(app.player.getPos(),app.player.getSize())):
-                mine.explode()
-                hitTaken(app)
+                mine.explode(app)
 
 def doWallRicochet(app,bullet):
     cell = locationToCell(bullet.getPos())
